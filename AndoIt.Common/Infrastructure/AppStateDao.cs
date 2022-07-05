@@ -62,14 +62,19 @@ namespace AndoIt.Common.Infrastructure
 
         private void InsertEmptyState()
         {
-            this.connection.EnsureDatabaseConnection();
-            string insertStatement = INITIALIZE_INSERT_TEMPLATE.Replace("{appId}", this.appId);
-            this.log.Debug($"Va lanzar este statement: '{insertStatement}'", new StackTrace());
-            int result = this.connection.Execute(insertStatement);
-            if (result != 1)
-                this.log.Fatal($"La sentencia ha devuelto {result}. Debería ser imposible", null, new StackTrace());
-            else
-                this.log.Debug($"End", new StackTrace());
+            try{
+                this.connection.EnsureDatabaseConnection();
+                string insertStatement = INITIALIZE_INSERT_TEMPLATE.Replace("{appId}", this.appId);
+                this.log.Debug($"Va lanzar este statement: '{insertStatement}'", new StackTrace());
+                int result = this.connection.Execute(insertStatement);
+                if (result != 1)
+                    this.log.Fatal($"La sentencia ha devuelto {result}. Debería ser imposible", null, new StackTrace());
+                else
+                    this.log.Debug($"End", new StackTrace());
+            } catch (Exception ex) {
+                this.log.Error($"En la tabla había datos incorrectos. ELIMINARÁ EL ESTADO ANTERIOR POR SER IRRECUPERABLE", ex);
+                this.AppState = JsonConvert.DeserializeObject<T>("{}");
+            }
         }
 
         public T AppState
@@ -116,7 +121,7 @@ namespace AndoIt.Common.Infrastructure
                 return $" to_clob('{appStateStr}')";
             else
             {
-                string firstClob = appStateStr.Substring(0, 3900 - 1);
+                string firstClob = appStateStr.Substring(0, 3900);
                 string restOfClobs = appStateStr.Substring(3900, appStateStr.Length -3900);
                 string result = $"to_clob('{firstClob}') || {FromOneStringToNClobs(restOfClobs)}";
                 return result;
