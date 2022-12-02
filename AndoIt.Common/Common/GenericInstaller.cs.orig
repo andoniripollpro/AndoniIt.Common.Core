@@ -10,7 +10,7 @@ namespace AndoIt.Common
 	/// Se necesita heredar de ella en el proyecto raíz que se quiera utilizar
 	/// </summary>
 	[RunInstaller(true)]
-	public class GenericInstaller : System.Configuration.Install.Installer
+    public class GenericInstaller : System.Configuration.Install.Installer
 	{
 		/// <summary>
 		/// Required designer variable.

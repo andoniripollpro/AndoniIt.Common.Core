@@ -18,7 +18,7 @@ namespace AndoIt.Publicador.Common.Test.Unit
 			var helper = new TestsHelper();			
 			IEnqueuer toTest = new Enqueuer(helper.MockLog.Object, helper.MockEnquerClient.Object);
 			var mockEnqueable = helper.MockEnqueable;
-			mockEnqueable.Setup(x => x.WhenToHandleNextUtc).Returns(DateTime.Now.AddSeconds(-1));
+			mockEnqueable.Setup(x => x.WhenToHandleNext).Returns(DateTime.Now.AddSeconds(-1));
 
 			//  Act
 			toTest.InsertTask(this, mockEnqueable.Object);
@@ -36,7 +36,7 @@ namespace AndoIt.Publicador.Common.Test.Unit
 			var helper = new TestsHelper();
 			IEnqueuer toTest = new Enqueuer(helper.MockLog.Object, helper.MockEnquerClient.Object);
 			var mockEnqueable = helper.MockEnqueable;
-			mockEnqueable.Setup(x => x.WhenToHandleNextUtc).Returns(DateTime.Now.AddSeconds(2));
+			mockEnqueable.Setup(x => x.WhenToHandleNext).Returns(DateTime.Now.AddSeconds(2));
 
 			//  Act
 			toTest.InsertTask(this, mockEnqueable.Object);
@@ -53,7 +53,7 @@ namespace AndoIt.Publicador.Common.Test.Unit
 			var helper = new TestsHelper();
 			IEnqueuer toTest = new Enqueuer(helper.MockLog.Object, helper.MockEnquerClient.Object);
 			var mockEnqueable = helper.MockEnqueable;
-			mockEnqueable.Setup(x => x.WhenToHandleNextUtc).Returns(DateTime.Now.AddSeconds(2));
+			mockEnqueable.Setup(x => x.WhenToHandleNext).Returns(DateTime.Now.AddSeconds(2));
 
 			//  Act
 			toTest.InsertTask(this, mockEnqueable.Object);

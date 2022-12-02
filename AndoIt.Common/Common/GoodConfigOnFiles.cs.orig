@@ -63,13 +63,19 @@ namespace AndoIt.Common
 					if (callingAssembly.GetHashCode() == new StackTrace().GetFrame(new StackTrace().FrameCount - 1).GetType().Assembly.GetHashCode()
 						&& Process.GetCurrentProcess().IsAsp())
 					{
-						configFileContent = System.Web.HttpContext.Current.Server.MapPath("~/web.config");
+						//	TODO?
+						throw new NotImplementedException("Con Core no se puede acceder a web.config de la manera que lo hacíamos antes");
+						//configFileContent = System.Web.HttpContext.Current.Server.MapPath("~/web.config");
 					}
 					else
 					{
 						string configFileName = $"{Path.GetFileName(callingAssembly.Location)}.config";
 						if (Process.GetCurrentProcess().IsAsp())
-							configFileName = System.Web.HttpContext.Current.Server.MapPath($"~/bin/{configFileName}");
+						{
+							//	TODO?
+							throw new NotImplementedException("Con Core no se puede acceder a la carpeta '~' de la manera que lo hacíamos antes");
+							//configFileName = System.Web.HttpContext.Current.Server.MapPath($"~/bin/{configFileName}");
+						}
 						configFileContent = File.ReadAllText(configFileName);
 					}
 				}

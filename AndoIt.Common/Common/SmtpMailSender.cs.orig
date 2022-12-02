@@ -39,13 +39,13 @@ namespace AndoIt.Common.Common
 
                 MailMessage myMail = new MailMessage();
                 myMail.From = new MailAddress(this.From);
-                var toList = this.To.Split(new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
-                toList.ToList().ForEach(x => { myMail.To.Add(new MailAddress(x.Trim())); });
+                var toList = this.To.Split(new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).ToList().Where(x => x.Trim() != string.Empty).ToList();
+                toList.ForEach(x => { myMail.To.Add(new MailAddress(x.Trim())); });
                 myMail.Subject = subject ?? this.Subject;
                 myMail.Body = text ?? this.Text;
 
-                var replyToList = this.ReplyTo.Split(new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
-                replyToList.ToList().ForEach(x => { myMail.ReplyToList.Add(new MailAddress(x.Trim())); });
+                var replyToList = this.ReplyTo.Split(new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).ToList().Where(x => x.Trim() != string.Empty).ToList();
+                replyToList.ForEach(x => { myMail.ReplyToList.Add(new MailAddress(x.Trim())); });
                 myMail.SubjectEncoding = System.Text.Encoding.UTF8;
                 myMail.BodyEncoding = System.Text.Encoding.UTF8;
                 myMail.IsBodyHtml = true; //??

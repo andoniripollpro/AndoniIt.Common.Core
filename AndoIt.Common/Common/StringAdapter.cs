@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Web;
 
 namespace AndoIt.Common
-{	
+{
     public class StringAdapter
     {
         private string stringDecorated;
@@ -17,82 +14,68 @@ namespace AndoIt.Common
             this.stringDecorated = str;
         }
 
-		[ObsoleteAttribute]
-		public string RemoveSpecialCharacters()
+        public string SubStringTruncated(int start, int numberChar = int.MaxValue)
+        {
+            return this.stringDecorated.SubStringTruncated(start, numberChar);
+        }
+
+        public string FromPascalCaseToText()
+        {
+            return FromPascalCaseToText(this.stringDecorated);
+        }
+
+        public string FromPascalCaseToText(string processing)
+        {
+            for (int i = 1; i < processing.Length; i++)
+            {
+                if (char.IsUpper(processing[i]) && processing[i - 1] != ' ')
+                    return FromPascalCaseToText(processing.Insert(i, " "));
+            }
+            return processing;
+        }
+
+        public string RemoveSpecialCharacters()
         {
             StringBuilder sb = new StringBuilder();
             foreach (char c in this.stringDecorated)
             {
-                if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') 
-                    || c == '.' || c == '_' || c == '-' || c == ',' || c == ';' || c == '+' || c == ':'
-					|| c == 'ñ' || c == 'Ñ' 
+                if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
+                    || c == '.' || c == '_' || c == '-' || c == ',' || c == ':' || c == ';'
+                    || c == 'ñ' || c == 'Ñ'
                     || c == 'á' || c == 'é' || c == 'í' || c == 'ó' || c == 'ú'
                     || c == 'Á' || c == 'É' || c == 'Í' || c == 'Ó' || c == 'Ú'
-                    || c == 'ü' || c == 'Ü')
+                    || c == 'ü' || c == 'Ú')
                 {
                     sb.Append(c);
                 }
             }
             return sb.ToString();
         }
-        public string SubStringTruncated(int start, int numberChar = int.MaxValue)
+        public StringAdapter SubStringTruncatedDecorated(int start, int numberChar)
         {
-            return this.stringDecorated.SubStringTruncated(start, numberChar);
+            return new StringAdapter(SubStringTruncated(start, numberChar));
         }
-	}
-
-    public static class StringExtender
-    {
-        public static string SubStringTruncated(this string extended, int start, int lenthToCut = int.MaxValue)
+        public string CutToSting(string cutToHere)
         {
-            int extendedLengh = extended.Length;
-            int maxNumChar = extendedLengh >= (long)lenthToCut + start ? lenthToCut : extendedLengh - start;
-            if (maxNumChar < 0)
-                return string.Empty;
-            else
-                return extended.Substring(start, maxNumChar);
-        }
-
-        public static string SubStringTruncated(this string extended, string startWord, string endWord = null)
-        {
-            if (string.IsNullOrWhiteSpace(startWord)) startWord = string.Empty;
-            int startIndex = extended.Contains(startWord) ? extended.IndexOf(startWord) + startWord.Length : 0;
-            // OJO: No he hecho el test unitario
-            string onProcess = extended.SubStringTruncated(startIndex);
-            int resultLength = (endWord == null || !onProcess.Contains(endWord))
-                ? int.MaxValue : extended.IndexOf(endWord);
-            return onProcess.SubStringTruncated(0, resultLength);
-        }
-
-        public static string FromCamelCaseToPhrase(this string extended)
-        {
-            List<char> phrase = new List<char>();
-
-            int i = 0;
-            extended.ToCharArray().ToList().ForEach(x => {
-                if (Char.IsLower(x) || i == 0)
-                {
-                    phrase.Add(x);
-                }
-                else
-                {
-                    phrase.Add(' ');
-                    phrase.Add(Char.ToLower(x));
-                }
-                i++;
-            });
-
-            if (phrase.Count > 0)
-                phrase[0] = Char.ToUpper(phrase[0]);
-
-            return new string(phrase.ToArray());
-        }
-
-        public static string TextToJsonValidValue ( this string extended)
-        {
-            var result = HttpUtility.JavaScriptStringEncode(extended);
+            int cutToHereIndex = this.stringDecorated.IndexOf(cutToHere);
+            string result = this.SubStringTruncated(cutToHereIndex + cutToHere.Length, int.MaxValue);
             return result;
-            //return extended.Replace("\"", "''");
         }
-	}
+        public StringAdapter CutToStingDecorated(string cutToHere)
+        {
+            return new StringAdapter(this.CutToSting(cutToHere));
+        }
+        public string CutFromSting(string cutFromHere)
+        {
+            int cutFromHereIndex = this.stringDecorated.IndexOf(cutFromHere);
+            if (cutFromHereIndex != -1)
+                return this.SubStringTruncated(0, cutFromHereIndex);
+            else
+                return this.stringDecorated;
+        }
+        public StringAdapter CutFromStingDecorated(string cutFromHere)
+        {
+            return new StringAdapter(this.CutFromSting(cutFromHere));
+        }
+    }
 }

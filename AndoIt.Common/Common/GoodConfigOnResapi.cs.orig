@@ -1,45 +1,38 @@
 ﻿using System;
 using System.Configuration;
 using System.Diagnostics;
-using System.Linq;
 using System.Xml;
-using Dapper;
 using AndoIt.Common.Common;
 using AndoIt.Common.Interface;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Oracle.ManagedDataAccess.Client;
 
 namespace AndoIt.Common
 {
-	public class GoodConfigOnDao : ConfigParser
+	public class GoodConfigOnResapi : ConfigParser
 	{
 		private readonly IIoCObjectContainer ioCObjectContainer;
-		private readonly string connectionString;
-		private readonly string appId;
-		private readonly int secondsToRefreshConfig;
 		private readonly ILog log;
+		private readonly string url;
+		private readonly int secondsToRefreshConfig;
 		private string configurationInJson;
 		private DateTime dataBaseLastRead;
 
-		public GoodConfigOnDao(IIoCObjectContainer ioCObjectContainer, string connectionString, string appId, int secondsToRefreshConfig = 0)
+		public GoodConfigOnResapi(IIoCObjectContainer ioCObjectContainer, string url, int secondsToRefreshConfig = 0)
 		{
 			this.ioCObjectContainer = ioCObjectContainer ?? throw new ArgumentNullException("ioCObjectContainer");
-			if (string.IsNullOrWhiteSpace(connectionString))
-				throw new ArgumentNullException("connectionString");
-			this.connectionString = connectionString;
-			if (string.IsNullOrWhiteSpace(appId))
-				throw new ArgumentNullException("appId");
-			this.appId = appId ?? throw new ArgumentNullException("appId");
+			if (string.IsNullOrWhiteSpace(url))
+				throw new ArgumentNullException("url");
+			this.url = url;			
 			this.secondsToRefreshConfig = secondsToRefreshConfig;
 			this.log = this.ioCObjectContainer.Get<ILog>();
-			this.configurationInJson = new Insister(this.log).Insist<string>(() => GetRootJStringFromDB() , 2);
+			this.configurationInJson = new Insister(this.log).Insist<string>(() => GetRootJStringFromRestApi() , 2);
 			this.dataBaseLastRead = DateTime.Now;
 			this.WriteConfigSafeToLog();
 		}
 
 		public ILog Log => log;
-		public override string ConnectionString => connectionString;
+		public override string ConnectionString => throw new NotImplementedException("Esta configuración no usa ConnectionString");	
 
 		public override void AddUpdateFromJToken(JToken configuration)
 		{
@@ -87,53 +80,35 @@ namespace AndoIt.Common
 			if ((this.secondsToRefreshConfig != 0 && DateTime.Now >= this.dataBaseLastRead.AddSeconds(this.secondsToRefreshConfig))
 				|| (this.secondsToRefreshConfig == 0 && DateTime.Now >= this.dataBaseLastRead.AddHours(1)))
 			{
-				try
-				{
-					ReloadConfig();
-				}
-				catch (Exception ex)
-				{
-					this.log.Error($"No se ha podido cargar la configuración. Seguirá con la vieja", ex);
-				}
+				ReloadConfig();
 			}
 			return this.configurationInJson;
 		}
 
 		public override void ReloadConfig()
 		{
-			this.configurationInJson = new Insister(this.log).Insist<string>(() => GetRootJStringFromDB(), 2);
+			this.configurationInJson = new Insister(this.log).Insist<string>(() => GetRootJStringFromRestApi(), 2);
 			this.dataBaseLastRead = DateTime.Now;
 			this.WriteConfigSafeToLog();
 		}
 
-		private const string SELECT_CONFIG = "Select CONFIGURACION from VOD_APP_CONFIG " +
-			"where APP_ID = '{appId}' " +
-			"and (F_I_VIGENCIA is null or SYSDATE >= F_I_VIGENCIA) " +
-			"and (F_F_VIGENCIA is null or SYSDATE < F_F_VIGENCIA) ";
-
-		private string GetRootJStringFromDB()
+		private string GetRootJStringFromRestApi()
 		{
-			var connection = new OracleConnection(this.ConnectionString);
-			connection.EnsureDatabaseConnection();
-			string query = SELECT_CONFIG.Replace("{appId}", this.appId);
-			this.log.Info(query, new StackTrace());
-			var configurationList = connection.Query<dynamic>(query).ToList();
-
-			string errorMessage = $"Existen {configurationList.Count()} registros de configuración en la base de datos el nombre {this.appId} y rango de fechas actual, y se espera 1 y sólo 1 ";
-			if (configurationList.Count() == 0)
-				throw new ConfigurationErrorsException(errorMessage);
-			else
+			var httpClient = new HttpClientAdapter();
+			try
 			{
-				string configurationInJson = configurationList[0].CONFIGURACION.ToString();
-				if (configurationList.Count() > 1) this.log.Error(errorMessage, null, new StackTrace());
-				this.log.Info("Config leída de la BD.");
-				return configurationInJson;
+				var httpResult = httpClient.AllCookedUpGet(this.url);
+				return httpResult;
+			} catch (Exception ex) {
+				string message = $"Error inesperado al obtener configuración de restapi en {this.url}";
+				this.log.Fatal(message, ex, new StackTrace());
+				throw new ConfigurationErrorsException(message, ex);
 			}
 		}
 
 		private void WriteConfigSafeToLog()
 		{
-			string connectionString = this.connectionString;
+			string url = this.url;
 			string configurationInJson = this.configurationInJson;
 			try
 			{
@@ -142,7 +117,7 @@ namespace AndoIt.Common
 				{
 					configLogForbiddenWords.ForEach(x =>
 					{
-						connectionString = connectionString.Replace(x, "XXXXXXXXXXXXX");
+						url = url.Replace(x, "XXXXXXXXXXXXX");
 						configurationInJson = configurationInJson.Replace(x, "XXXXXXXXXXXXX");
 					});
 				}
@@ -152,7 +127,7 @@ namespace AndoIt.Common
 				else
 					throw;
 			}
-			this.log.Debug($"connectionString: {connectionString}", new StackTrace());
+			this.log.Debug($"url: {url}", new StackTrace());
 			this.log.Debug($"Esta es la configuración leída de la BD: {Environment.NewLine}{configurationInJson}", new StackTrace());
 		}
 	}
