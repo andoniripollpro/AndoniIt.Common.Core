@@ -3,7 +3,7 @@
 namespace AndoIt.Common.Test.Common.Unit
 {
 	[TestClass]
-	public class StringAdapterTest
+	public class StringAdapterExtenderTest
 	{
 		#region Start and Length
 		[TestMethod]
@@ -176,6 +176,35 @@ namespace AndoIt.Common.Test.Common.Unit
 
 			//	Assert
 			Assert.AreEqual("Variable en upper camelback", actual);
+		}
+		#endregion
+
+		#region Extender
+		[TestMethod]
+		public void TextToJsonValidValue_CleanJson_SameString()
+		{
+			//	Arrange			
+			string toTest = "{ \"Name\": \"Value\" }";
+
+			//	Act
+			string actual = toTest.TextToJsonValidValue();
+
+			//	Assert
+			Assert.AreEqual(toTest, actual);
+		}
+
+		[TestMethod]
+		public void TextToJsonValidValue_JsonWithControlCharacters_Cleaned()
+		{
+			//	Arrange			
+			string toTest = $"{{ \"Message\":\"ERROR INGESTA Please attempt to re-run the transcode.{(char)26}\" }}";
+
+			//	Act
+			string actual = toTest.TextToJsonValidValue();
+
+			//	Assert
+			Assert.AreNotEqual(toTest, actual);
+			Assert.IsFalse(actual.Contains((char)26));
 		}
 		#endregion
 	}

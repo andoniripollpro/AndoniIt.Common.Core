@@ -18,7 +18,7 @@ namespace AndoIt.Publicador.Common.Test.Unit
 			var helper = new TestsHelper();			
 			IEnqueuer toTest = new Enqueuer(helper.MockLog.Object, helper.MockEnquerClient.Object);
 			var mockEnqueable = helper.MockEnqueable;
-			mockEnqueable.Setup(x => x.WhenToHandleNextUtc).Returns(DateTime.Now.AddSeconds(-1));
+			mockEnqueable.Setup(x => x.WhenToHandleNextUtc).Returns(DateTime.Now.ToUniversalTime().AddSeconds(-1));
 
 			//  Act
 			toTest.InsertTask(this, mockEnqueable.Object);
