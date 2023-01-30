@@ -23,12 +23,12 @@ namespace AndoIt.Common
         {
         }
 
-        //public HttpClientAdapter(HttpClientAdapter.ILog logListener = null, int? timeoutSeconds = null, System.Net.Http.Headers.AuthenticationHeaderValue authenticationHeaderValue = null)
-        //{
-        //    this.logListener = logListener;
-        //    this.timeoutSeconds = timeoutSeconds;
-        //    this.authenticationHeaderValue = authenticationHeaderValue;
-        //}
+        public HttpClientAdapter(HttpClientAdapter.ILog logListener = null, int? timeoutSeconds = null, AuthenticationHeaderValue authenticationHeaderValue = null)
+        {
+            this.logListener = logListener;
+            this.timeoutSeconds = timeoutSeconds;
+            this.authenticationHeaderValue = authenticationHeaderValue;
+        }
 
         public ILog LogListener
         {

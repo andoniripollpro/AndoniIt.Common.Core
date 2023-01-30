@@ -56,7 +56,8 @@ namespace AndoIt.Common
 
         public static string TextToJsonValidValue ( this string extended)
         {
-            var result = HttpUtility.JavaScriptStringEncode(extended);
+            //var result = HttpUtility.JavaScriptStringEncode(extended);
+            var result = new string(extended.Where(c => !char.IsControl(c)).ToArray());
             return result;
             //return extended.Replace("\"", "''");
         }

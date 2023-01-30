@@ -37,8 +37,8 @@ namespace AndoIt.Common.Common
 			this.amqpUrlListen = amqpUrlListen ?? throw new ArgumentNullException("amqpUrlListen");
 		}
 
-		public int InternalRestartRetrays { get; set; } = 10;
-		public int RetryEachSeconds { get; set; } = 900; // 15 min
+		public int InternalRestartRetrays { get; set; } = 6;
+		public int RetryEachSeconds { get; set; } = 600; // 10 min
 		public bool ErrorFatalEventOnFirstFail { get; set; } = false;
 
 		public void Listen()
@@ -193,6 +193,7 @@ namespace AndoIt.Common.Common
 		/// </summary>
 		private void RecoverIfNeeded()
 		{
+			this.log.Info($"Start", new StackTrace());
 			try
 			{
 				if (!this.DisposingOnPurpouse && this.channel != null)
@@ -201,7 +202,9 @@ namespace AndoIt.Common.Common
 					if (this.ErrorFatalEventOnFirstFail)
 						this?.ErrorFatalEvent(this, new Envelope<string>() { Content = "Está intentando recuperarse, pero va a pedir reiniciar el servicio" });
 					Thread.Sleep(this.RetryEachSeconds * 1000);
+					this.DisposingOnPurpouse = true;
 					new Insister(this.log).Insist(new Action(() => InternalRestart()), this.InternalRestartRetrays);
+					this.DisposingOnPurpouse = false;
 					//this.log.Info($"Este thread se va a quedar zombi para que no me mate el proceso", new StackTrace());
 					//while (true) Thread.Sleep(int.MaxValue);	//	ZOMBI
 				}
@@ -210,17 +213,20 @@ namespace AndoIt.Common.Common
 			{
 				string errorMessage = "Se ha intentado recuperar la conexión con RabbitMQ, pero no se ha podido";
 				this.log.Fatal($"{new StackTrace().ToStringClassMethod()}: {errorMessage}", ex);
-				this?.ErrorFatalEvent(this, new Envelope<string>() { Content = errorMessage, Exception = ex });
+				this?.ErrorFatalEvent(this, new Envelope<string>() { Content = errorMessage, Exception = ex });				
 			}
+			this.log.Info($"End", new StackTrace());
 		}		
 		private void InternalRestart()
 		{
+			this.log.Info($"Start", new StackTrace());
 			this.log.Info($"CloseConnection(); this.DisposingOnPurpouse = {this.DisposingOnPurpouse}", new StackTrace());						
 			CloseConnection();
 
 			Thread.Sleep(this.RetryEachSeconds * 1000);
 			this.log.Info($"Listen();", new StackTrace());
 			this.Listen();
+			this.log.Info($"End", new StackTrace());
 		}
 
 		public void Dispose()

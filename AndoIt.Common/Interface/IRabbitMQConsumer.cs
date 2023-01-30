@@ -9,6 +9,9 @@ namespace AndoIt.Common.Interface
 		event EventHandler<Envelope<string>> ErrorFatalEvent;
 		event EventHandler<Envelope<string>> MessageArrived;
 
+		int InternalRestartRetrays { get; set; } 
+		int RetryEachSeconds { get; set; } 
+
 		void ConsumeMessage(BasicDeliverEventArgs ea);
 		void Dispose();
 		void Listen();

@@ -29,6 +29,14 @@ namespace AndoIt.Common
 			return localTime;
 		}
 
+		public static DateTime GetAssemblyCompilationTime(this Assembly assembly, TimeZoneInfo target = null)
+		{
+			string codeBase = assembly.GetName().CodeBase;
+			string fullPath = codeBase.Replace("file:///", string.Empty);
+			DateTime result = File.GetLastWriteTime(fullPath);			
+			return result;
+		}
+
 		public static string AssemblyDirectory(this Assembly assembly)
 		{
 			UriBuilder uri = new UriBuilder(assembly.CodeBase);
