@@ -12,7 +12,7 @@ using Oracle.ManagedDataAccess.Client;
 
 namespace AndoIt.Common
 {
-	public class GoodConfigOnDao : ConfigParser
+    public class GoodConfigOnDao : ConfigParser
 	{
 		private readonly IIoCObjectContainer ioCObjectContainer;
 		private readonly string connectionString;
@@ -136,17 +136,18 @@ namespace AndoIt.Common
 			string connectionString = this.connectionString;
 			string configurationInJson = this.configurationInJson;
 			try
-			{
-				var configLogForbiddenWords = this.GetAsStringList("log.forbiddenWords");
-				if (configLogForbiddenWords != null)
-				{
-					configLogForbiddenWords.ForEach(x =>
-					{
-						connectionString = connectionString.Replace(x, "XXXXXXXXXXXXX");
-						configurationInJson = configurationInJson.Replace(x, "XXXXXXXXXXXXX");
-					});
-				}
-			} catch (ConfigurationErrorsException ex) {
+            {
+                var configLogForbiddenWords = this.ForbiddenWords;
+                if (configLogForbiddenWords != null)
+                {
+                    configLogForbiddenWords.ForEach(x =>
+                    {
+                        connectionString = connectionString.Replace(x, "XXXXXXXXXXXXX");
+                        configurationInJson = configurationInJson.Replace(x, "XXXXXXXXXXXXX");
+                    });
+                }
+            }
+            catch (ConfigurationErrorsException ex) {
 				if (ex.Message.Contains("No existe"))
 					this.log.Warn($"log.forbiddenWords no existe en la configuración. ¿Falta ocular paswords en el log?", ex, new StackTrace());
 				else

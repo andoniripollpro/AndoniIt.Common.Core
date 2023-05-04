@@ -44,22 +44,26 @@ namespace AndoIt.Common
 		}				
 		public void Warn(string message, Exception exception = null, StackTrace stackTrace = null)
 		{
+			this.incidenceEscalator?.Warn(message, exception, stackTrace);
 			if (stackTrace != null) message = $"{stackTrace.ToStringClassMethod()}: {message}{Environment.NewLine}{stackTrace.ToString()}";
 			this.wrappedLog.Warn(exception, message);
 		}		
 		public void Info(string message, StackTrace stackTrace = null)
 		{
+			this.incidenceEscalator?.Info(message, stackTrace);
 			if (stackTrace != null) message = $"{stackTrace.ToStringClassMethod()}: {message}";
 			this.wrappedLog.Info(message);			
 		}
 		public void InfoSafe(string message, StackTrace stackTrace)
 		{
 			message = SafeCleanForbiddenWords(message);
+			this.incidenceEscalator?.InfoSafe(message, stackTrace);
 			this.Info(message, stackTrace);
 		}
 		public void DebugSafe(string message, StackTrace stackTrace)
 		{
 			message = SafeCleanForbiddenWords(message);
+			this.incidenceEscalator?.DebugSafe(message, stackTrace);
 			this.Debug(message);
 		}
 		private string SafeCleanForbiddenWords(string message)
@@ -69,6 +73,7 @@ namespace AndoIt.Common
 		}
 		public void Debug(string message, StackTrace stackTrace = null)
 		{
+			this.incidenceEscalator?.Debug(message, stackTrace);
 			if (stackTrace != null) message = $"{stackTrace.ToStringClassMethod()}: {message}";
 			this.wrappedLog.Debug(message);
 		}

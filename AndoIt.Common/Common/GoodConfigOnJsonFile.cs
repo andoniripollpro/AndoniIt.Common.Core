@@ -1,20 +1,14 @@
 ﻿using AndoIt.Common.Common;
 using AndoIt.Common.Interface;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
 using System.Configuration;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Net;
-using System.Reflection;
 using System.Xml;
 
 namespace AndoIt.Common
 {
-	public class GoodConfigOnJsonFile : ConfigParser
+    public class GoodConfigOnJsonFile : ConfigParser
 	{
 		private static IGoodConfig presetConfig = null;
 		private ConnectData connecData = null;

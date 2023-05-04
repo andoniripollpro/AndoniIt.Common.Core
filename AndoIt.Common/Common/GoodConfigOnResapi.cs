@@ -151,7 +151,7 @@ namespace AndoIt.Common
 			string configurationInJson = this.configurationInJson;
 			try
 			{
-				var configLogForbiddenWords = this.GetAsStringList("log.forbiddenWords");
+				var configLogForbiddenWords = this.ForbiddenWords;
 				if (configLogForbiddenWords != null)
 				{
 					configLogForbiddenWords.ForEach(x =>

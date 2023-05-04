@@ -198,9 +198,9 @@ namespace AndoIt.Common.Common
 			{
 				if (!this.DisposingOnPurpouse && this.channel != null)
 				{
-					this.log.Error($"InternalRestartRetrays: {this.InternalRestartRetrays} RetryEachSeconds {this.RetryEachSeconds}", null, new StackTrace());
+					this.log.Error($"InternalRestartRetrays: {this.InternalRestartRetrays} RetryEachSeconds: {this.RetryEachSeconds} ErrorFatalEventOnFirstFai: {this.ErrorFatalEventOnFirstFail}", null, new StackTrace());
 					if (this.ErrorFatalEventOnFirstFail)
-						this?.ErrorFatalEvent(this, new Envelope<string>() { Content = "Está intentando recuperarse, pero va a pedir reiniciar el servicio" });
+						this?.ErrorFatalEvent(this, new Envelope<string>() { Content = "ErrorFatalEventOnFirstFail = true. Al haber un error de la conexión con Rabbit se parará" });
 					Thread.Sleep(this.RetryEachSeconds * 1000);
 					this.DisposingOnPurpouse = true;
 					new Insister(this.log).Insist(new Action(() => InternalRestart()), this.InternalRestartRetrays);
@@ -211,7 +211,7 @@ namespace AndoIt.Common.Common
 			}
 			catch (Exception ex)
 			{
-				string errorMessage = "Se ha intentado recuperar la conexión con RabbitMQ, pero no se ha podido";
+				string errorMessage = "Se ha intentado recuperar la conexión con RabbitMQ, pero no se ha podido.";
 				this.log.Fatal($"{new StackTrace().ToStringClassMethod()}: {errorMessage}", ex);
 				this?.ErrorFatalEvent(this, new Envelope<string>() { Content = errorMessage, Exception = ex });				
 			}

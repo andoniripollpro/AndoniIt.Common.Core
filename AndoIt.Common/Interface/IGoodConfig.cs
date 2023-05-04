@@ -7,8 +7,9 @@ namespace AndoIt.Common.Interface
 	public interface IGoodConfig
 	{
 		string ConnectionString { get; }
+        List<string> ForbiddenWords { get; }
 
-		string GetAsString(string tagAddress, string defaultValue = null);
+        string GetAsString(string tagAddress, string defaultValue = null);
 		int GetAsInt(string tagAddress);
 		List<string> GetAsStringList(string tagAddress, char separator = ',');
 

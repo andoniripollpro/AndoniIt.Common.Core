@@ -1,4 +1,5 @@
-﻿using AndoIt.Common.Interface;
+﻿using AndoIt.Common.Common;
+using AndoIt.Common.Interface;
 using System;
 using System.Diagnostics;
 
@@ -15,32 +16,32 @@ namespace AndoIt.Common
 				
 		public void Fatal(string message, Exception exception = null, StackTrace stackTrace = null, params object[] paramValues)
 		{
-			Console.WriteLine($"FATAL: {message} Exception: {exception?.ToString()}");
+			Console.WriteLine($"FATAL: {stackTrace.ToStringClassMethod()}: {message} Exception: {exception?.ToString()}");
 		}		
 		public void Error(string message, Exception exception = null, StackTrace stackTrace = null, params object[] paramValues)
 		{
 			if (this.logLevel <= LogLevel.Error)
-				Console.WriteLine($"ERROR: {message} Exception: {exception?.ToString()}");
+				Console.WriteLine($"ERROR: {stackTrace.ToStringClassMethod()}: {message} Exception: {exception?.ToString()}");
 		}				
 		public void Warn(string message, Exception exception = null, StackTrace stackTrace = null)
 		{
 			if (this.logLevel <= LogLevel.Warn)
-				Console.WriteLine($"WARN: {message} Exception: {exception?.ToString()}");
+				Console.WriteLine($"WARN: {stackTrace.ToStringClassMethod()}: {message} Exception: {exception?.ToString()}");
 		}		
 		public void Info(string message, StackTrace stackTrace = null)
 		{
 			if (this.logLevel <= LogLevel.Info)
-				Console.WriteLine($"INFO: {message}");
+				Console.WriteLine($"INFO: {stackTrace.ToStringClassMethod()}: {message}");
 		}
 		public void InfoSafe(string message, StackTrace stackTrace)
 		{
 			if (this.logLevel <= LogLevel.Info)
-				Console.WriteLine($"INFO: {message}");
+				Console.WriteLine($"INFO: {stackTrace.ToStringClassMethod()}: {message}");
 		}
 		public void DebugSafe(string message, StackTrace stackTrace)
 		{
 			if (this.logLevel <= LogLevel.Debug)
-				Console.WriteLine($"Debug: {message}");
+				Console.WriteLine($"Debug: {stackTrace.ToStringClassMethod()}: {message}");
 		}
 		private string SafeCleanForbiddenWords(string message)
 		{
@@ -49,7 +50,7 @@ namespace AndoIt.Common
 		public void Debug(string message, StackTrace stackTrace = null)
 		{
 			if (this.logLevel <= LogLevel.Debug)
-				Console.WriteLine($"Debug: {message}");
+				Console.WriteLine($"Debug: {stackTrace.ToStringClassMethod()}: {message}");
 		}
 		public void Dispose()
 		{
