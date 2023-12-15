@@ -100,7 +100,7 @@ namespace AndoIt.Common.Common
 
 				this.channel.BasicAck(ea.DeliveryTag, false);
 
-				this.log.InfoSafe($"Received message '{message}', correlationId {correlationId}. Rabbit queue: {this.amqpUrlListen}", new StackTrace());
+				this.log.InfoSafe($"Received and processed message '{message}', correlationId {correlationId}. Rabbit queue: {this.amqpUrlListen}", new StackTrace());
 			}
 			catch (Exception e)
 			{
