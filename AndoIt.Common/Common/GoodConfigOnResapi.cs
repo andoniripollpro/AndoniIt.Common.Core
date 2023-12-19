@@ -41,8 +41,9 @@ namespace AndoIt.Common
 		public ILog Log => log;
 
 		public override string ConnectionString => throw new NotImplementedException("Esta configuración no usa ConnectionString");
+        public override string ConfigurationInJson { get => configurationInJson; }
 
-		private bool NeedsToReload
+        private bool NeedsToReload
 		{
 			get
 			{
