@@ -43,7 +43,7 @@ namespace AndoIt.Common
             this.incidenceEscalator?.Fatal(message, exception, stackTrace);
             if (stackTrace != null) message = $"{stackTrace.ToStringClassMethod()}: {message}{Environment.NewLine}"
                     + $"Params: {ParamsToString(stackTrace.GetFrame(0).GetMethod(), paramValues)}{Environment.NewLine}{stackTrace.ToString()}";
-            this.wrappedLog.SetStatus(ActivityStatusCode.Error, $"FATAL: {message}{Environment.NewLine}Exception: {exception}");//, paramValues); // Sin parámetros
+            this.wrappedLog.SetStatus(ActivityStatusCode.Error, $"FATAL: {message}{Environment.NewLine}Exception: {exception}");//, paramValues); // Sin parámetros            
         }
         public void Error(string message, Exception exception = null, StackTrace stackTrace = null, params object[] paramValues)
         {
