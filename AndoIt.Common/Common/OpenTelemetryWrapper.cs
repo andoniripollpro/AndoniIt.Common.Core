@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry.Logs;
 
 namespace AndoIt.Common
 {
@@ -18,24 +19,30 @@ namespace AndoIt.Common
 
         public string FORBIDDEN_WORD_CHARACTERS = "XXXXXXXXXXXXXXXXXXXX";
 
-        public OpenTelemetryWrapper(ILogger<object> wrappedLog, ILog incidenceEscalator = null, List<string> forbiddenWords = null)
+        public OpenTelemetryWrapper(Uri collectorUri, ILog incidenceEscalator = null, List<string> forbiddenWords = null)
         {
-            //using var loggerFactory = LoggerFactory.Create(builder =>
-            //{
-            //    builder.AddOpenTelemetry(options =>
-            //    {
-            //        options.AddConsoleExporter();
-            //    });
-            //});
-
-            //var logger = loggerFactory.CreateLogger<object>();
-
-            this.wrappedLog = wrappedLog ?? throw new ArgumentNullException("wrappedLog");
+            if (collectorUri == null) throw new ArgumentNullException("collectorUri no puede ser nulo y debe tener la uri del colector de OTEL-OpenTelemetry");
             this.incidenceEscalator = incidenceEscalator;
             if (forbiddenWords != null)
             {
                 this.forbiddenWords.AddRange(forbiddenWords);
             }
+
+            var loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder.AddOpenTelemetry(options =>
+                {
+                    options.AddOtlpExporter(exporterOptions =>
+                    {
+                        //options.Endpoint = new Uri("https://otlp-http.apps.ocpmovistar001.interactivos.int");
+                        //exporterOptions.Endpoint = new Uri("http://collector-opentelemetry-collector.opentelemetry.svc.cluster.local:4317");
+                        exporterOptions.Endpoint = collectorUri;
+                        exporterOptions.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
+                    });
+                    options.AddConsoleExporter();
+                });
+            });
+            this.wrappedLog = loggerFactory.CreateLogger<Object>();
         }
 
         public void Fatal(string message, Exception exception = null, StackTrace stackTrace = null, params object[] paramValues)
@@ -43,26 +50,38 @@ namespace AndoIt.Common
             this.incidenceEscalator?.Fatal(message, exception, stackTrace);
             if (stackTrace != null) message = $"{stackTrace.ToStringClassMethod()}: {message}{Environment.NewLine}"
                     + $"Params: {ParamsToString(stackTrace.GetFrame(0).GetMethod(), paramValues)}{Environment.NewLine}{stackTrace.ToString()}";
-            this.wrappedLog.LogCritical(exception, $"FATAL: {message}", paramValues);            
+            this.wrappedLog.LogCritical(exception, $"FATAL-CRITICAL (Exception={exception.Message}): {message}", paramValues);
+            if (exception.InnerException != null)
+            {
+                this.Fatal($"INNER EXCEPTION: ", exception.InnerException);
+            }
         }
         public void Error(string message, Exception exception = null, StackTrace stackTrace = null, params object[] paramValues)
         {
             this.incidenceEscalator?.Error(message, exception, stackTrace);
             if (stackTrace != null) message = $"{stackTrace.ToStringClassMethod()}: {message}{Environment.NewLine}"
                     + $"Params: {ParamsToString(stackTrace.GetFrame(0).GetMethod(), paramValues)}{Environment.NewLine}{stackTrace.ToString()}";
-            this.wrappedLog.LogError(exception, message, paramValues);
+            this.wrappedLog.LogError(exception, $"ERROR (Exception={exception.Message}): {message}", paramValues);
+            if (exception.InnerException != null)
+            {
+                this.Error($"INNER EXCEPTION: ", exception.InnerException);
+            }
         }
         public void Warn(string message, Exception exception = null, StackTrace stackTrace = null)
         {
             this.incidenceEscalator?.Warn(message, exception, stackTrace);
             if (stackTrace != null) message = $"{stackTrace.ToStringClassMethod()}: {message}{Environment.NewLine}{stackTrace.ToString()}";
-            this.wrappedLog.LogWarning(exception, message);
+            this.wrappedLog.LogWarning(exception, $"WARN (Exception={exception.Message}): {message}");
+            if (exception.InnerException != null)
+            {
+                this.Warn($"INNER EXCEPTION: ", exception.InnerException);
+            }
         }
         public void Info(string message, StackTrace stackTrace = null)
         {
             this.incidenceEscalator?.Info(message, stackTrace);
             if (stackTrace != null) message = $"{stackTrace.ToStringClassMethod()}: {message}";
-            this.wrappedLog.LogInformation(message);
+            this.wrappedLog.LogInformation($"INFO: {message}");
         }
         public void InfoSafe(string message, StackTrace stackTrace)
         {
@@ -85,7 +104,10 @@ namespace AndoIt.Common
         {
             this.incidenceEscalator?.Debug(message, stackTrace);
             if (stackTrace != null) message = $"{stackTrace.ToStringClassMethod()}: {message}";
-            this.wrappedLog.LogDebug(message);
+            //  TODO: Harcodeado. Como el colector del OTEL no me escribe no los LogDebug ni los LogTrace lo escribo con LogInformation. Con el texto 'DEBUG-TRACE' se debe entender
+            //  Cuando controle esto habrá que ponerlo bien.
+            this.wrappedLog.LogInformation($"DEBUG-TRACE: {message}");
+            //this.wrappedLog.LogDebug($"DEBUG-TRACE: {message}");
         }
         public void Dispose()
         {

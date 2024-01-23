@@ -12,11 +12,13 @@ namespace AndoIt.Common.Interface
         string GetAsString(string tagAddress, string defaultValue = null);
 		int GetAsInt(string tagAddress);
 		List<string> GetAsStringList(string tagAddress, char separator = ',');
+        bool GetAsBool(string tagAddress);
 
-		XmlNode GetXmlNodeByTagAddress(string tagAddress);
+        XmlNode GetXmlNodeByTagAddress(string tagAddress);
 		JToken GetJNodeByTagAddress(string tagAddress = null);
 		void AddUpdateFromJToken(JToken configuration);
         void ReloadConfig();
-        bool GetAsBool(string v);
+        
+        string ConfigurationInJson { get; }
     }
 }

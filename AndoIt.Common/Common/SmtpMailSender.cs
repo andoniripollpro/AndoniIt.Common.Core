@@ -66,7 +66,7 @@ namespace AndoIt.Common.Common
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
     }

@@ -40,8 +40,9 @@ namespace AndoIt.Common
 
 		public ILog Log => log;
 		public override string ConnectionString => connectionString;
+        public override string ConfigurationInJson { get => configurationInJson; }
 
-		public override void AddUpdateFromJToken(JToken configuration)
+        public override void AddUpdateFromJToken(JToken configuration)
 		{
 			throw new NotImplementedException();
 		}

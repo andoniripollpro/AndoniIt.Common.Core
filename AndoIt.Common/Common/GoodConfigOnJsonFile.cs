@@ -35,14 +35,16 @@ namespace AndoIt.Common
 
 		public override string ConnectionString => throw new NotImplementedException("ConnectionString en GoodConfigOnFiles no se usa");
 
-		public override XmlNode GetXmlNodeByTagAddress(string tagAddress)
+        public override string ConfigurationInJson { get => configurationInJson; }
+
+        public override XmlNode GetXmlNodeByTagAddress(string tagAddress)
 		{
 			throw new NotImplementedException();
 		}				
 
 		public override JToken GetJNodeByTagAddress(string tagAddress)
 		{
-			JToken jTokenParsed = JToken.Parse(this.configurationInJson);
+			JToken jTokenParsed = JToken.Parse(this.ConfigurationInJson);
 			JToken jTokenResult = GetJNodeByTagAddressOnJNode(jTokenParsed, tagAddress);
 			return jTokenResult ?? throw new ConfigurationErrorsException($"El tagAddress '{tagAddress}' me da nulo en la configuración");
 		}

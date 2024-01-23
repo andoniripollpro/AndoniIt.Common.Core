@@ -16,6 +16,7 @@ namespace AndoIt.Common.Common
         public abstract JToken GetJNodeByTagAddress(string tagAddress = null);
         public abstract XmlNode GetXmlNodeByTagAddress(string tagAddress);
         public abstract void ReloadConfig();
+        public abstract string ConfigurationInJson { get; }
         public List<string> ForbiddenWords => GetAsStringList("log.forbiddenWords");
 
         public int GetAsInt(string tagAddress)
