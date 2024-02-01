@@ -15,8 +15,6 @@ namespace AndoIt.Common
         private readonly ILog incidenceEscalator;
         public readonly List<string> forbiddenWords = new List<string>();
 
-        public const string APP_NAME = "ServicioLiveToFile";
-
         public string FORBIDDEN_WORD_CHARACTERS = "XXXXXXXXXXXXXXXXXXXX";
 
         public OpenTelemetryWrapper(Uri collectorUri, ILog incidenceEscalator = null, List<string> forbiddenWords = null)
