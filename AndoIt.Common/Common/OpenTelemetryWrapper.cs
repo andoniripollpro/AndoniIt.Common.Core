@@ -6,12 +6,16 @@ using System.Diagnostics;
 using System.Reflection;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
+using OpenTelemetry.Trace;
+using OpenTelemetry;
+using Microsoft.Extensions.Options;
 
 namespace AndoIt.Common
 {
     public class OpenTelemetryWrapper : ILog, IDisposable
     {
         private readonly ILogger<object> wrappedLog;
+        private readonly Tracer tracer;
         private readonly ILog incidenceEscalator;
         public readonly List<string> forbiddenWords = new List<string>();
 
@@ -26,6 +30,7 @@ namespace AndoIt.Common
                 this.forbiddenWords.AddRange(forbiddenWords);
             }
 
+            //  Log
             var loggerFactory = LoggerFactory.Create(builder =>
             {
                 builder.AddOpenTelemetry(options =>
@@ -41,6 +46,21 @@ namespace AndoIt.Common
                 });
             });
             this.wrappedLog = loggerFactory.CreateLogger<Object>();
+
+            //  Trace
+            using var openTelemetry = Sdk.CreateTracerProviderBuilder()
+                .AddConsoleExporter()
+                .AddOtlpExporter(exporterOptions =>
+                {
+                    //options.Endpoint = new Uri("https://otlp-http.apps.ocpmovistar001.interactivos.int");
+                    //exporterOptions.Endpoint = new Uri("http://collector-opentelemetry-collector.opentelemetry.svc.cluster.local:4317");
+                    exporterOptions.Endpoint = collectorUri;
+                    exporterOptions.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
+                })
+                .Build();
+
+            // Obtener el tracer
+            this.tracer = openTelemetry.GetTracer("Common.OpenTelemetryWrapper");
         }
 
         public void Fatal(string message, Exception exception = null, StackTrace stackTrace = null, params object[] paramValues)
@@ -48,22 +68,26 @@ namespace AndoIt.Common
             this.incidenceEscalator?.Fatal(message, exception, stackTrace);
             if (stackTrace != null) message = $"{stackTrace.ToStringClassMethod()}: {message}{Environment.NewLine}"
                     + $"Params: {ParamsToString(stackTrace.GetFrame(0).GetMethod(), paramValues)}{Environment.NewLine}{stackTrace.ToString()}";
-            this.wrappedLog.LogCritical(exception, $"FATAL-CRITICAL (Exception={exception.Message}): {message}", paramValues);
+            message = $"FATAL-CRITICAL (Exception={exception.Message}): {message}";
+            this.wrappedLog.LogCritical(exception, message, paramValues);
             if (exception.InnerException != null)
             {
                 this.Fatal($"INNER EXCEPTION: ", exception.InnerException);
             }
+            EscribeTrazaError(message);
         }
         public void Error(string message, Exception exception = null, StackTrace stackTrace = null, params object[] paramValues)
         {
             this.incidenceEscalator?.Error(message, exception, stackTrace);
             if (stackTrace != null) message = $"{stackTrace.ToStringClassMethod()}: {message}{Environment.NewLine}"
                     + $"Params: {ParamsToString(stackTrace.GetFrame(0).GetMethod(), paramValues)}{Environment.NewLine}{stackTrace.ToString()}";
-            this.wrappedLog.LogError(exception, $"ERROR (Exception={exception.Message}): {message}", paramValues);
+            message = $"ERROR (Exception={exception.Message}): {message}";
+            this.wrappedLog.LogError(exception, message, paramValues);
             if (exception.InnerException != null)
             {
                 this.Error($"INNER EXCEPTION: ", exception.InnerException);
             }
+            EscribeTrazaError(message);
         }
         public void Warn(string message, Exception exception = null, StackTrace stackTrace = null)
         {
@@ -107,6 +131,15 @@ namespace AndoIt.Common
             this.wrappedLog.LogInformation($"DEBUG-TRACE: {message}");
             //this.wrappedLog.LogDebug($"DEBUG-TRACE: {message}");
         }
+        public void EscribeTrazaError(string message)
+        {
+            // Crear y empezar una nueva traza
+            using (var span = tracer.StartActiveSpan($"Error-{DateTime.Now.ToString("yyyy-MMM-dd")}"))
+            {
+                // Añadir el estado de error al span
+                span.SetStatus(Status.Error.WithDescription(message));
+            }
+        }        
         public void Dispose()
         {
             //  En reoría no hay que hacer nada
