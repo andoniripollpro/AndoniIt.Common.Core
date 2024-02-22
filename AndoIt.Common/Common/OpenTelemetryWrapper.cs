@@ -68,11 +68,11 @@ namespace AndoIt.Common
             this.incidenceEscalator?.Fatal(message, exception, stackTrace);
             if (stackTrace != null) message = $"{stackTrace.ToStringClassMethod()}: {message}{Environment.NewLine}"
                     + $"Params: {ParamsToString(stackTrace.GetFrame(0).GetMethod(), paramValues)}{Environment.NewLine}{stackTrace.ToString()}";
-            message = $"FATAL-CRITICAL (Exception={exception.Message}): {message}";
+            message = $"FATAL-CRITICAL (Exception={exception?.Message}): {message}";
             this.wrappedLog.LogCritical(exception, message, paramValues);
-            if (exception.InnerException != null)
+            if (exception?.InnerException != null)
             {
-                this.Fatal($"INNER EXCEPTION: ", exception.InnerException);
+                this.Fatal($"INNER EXCEPTION: ", exception?.InnerException);
             }
             EscribeTrazaError(message);
         }
@@ -81,11 +81,11 @@ namespace AndoIt.Common
             this.incidenceEscalator?.Error(message, exception, stackTrace);
             if (stackTrace != null) message = $"{stackTrace.ToStringClassMethod()}: {message}{Environment.NewLine}"
                     + $"Params: {ParamsToString(stackTrace.GetFrame(0).GetMethod(), paramValues)}{Environment.NewLine}{stackTrace.ToString()}";
-            message = $"ERROR (Exception={exception.Message}): {message}";
+            message = $"ERROR (Exception={exception?.Message}): {message}";
             this.wrappedLog.LogError(exception, message, paramValues);
-            if (exception.InnerException != null)
+            if (exception?.InnerException != null)
             {
-                this.Error($"INNER EXCEPTION: ", exception.InnerException);
+                this.Error($"INNER EXCEPTION: ", exception?.InnerException);
             }
             EscribeTrazaError(message);
         }
@@ -93,10 +93,10 @@ namespace AndoIt.Common
         {
             this.incidenceEscalator?.Warn(message, exception, stackTrace);
             if (stackTrace != null) message = $"{stackTrace.ToStringClassMethod()}: {message}{Environment.NewLine}{stackTrace.ToString()}";
-            this.wrappedLog.LogWarning(exception, $"WARN (Exception={exception.Message}): {message}");
-            if (exception.InnerException != null)
+            this.wrappedLog.LogWarning(exception, $"WARN (Exception={exception?.Message}): {message}");
+            if (exception?.InnerException != null)
             {
-                this.Warn($"INNER EXCEPTION: ", exception.InnerException);
+                this.Warn($"INNER EXCEPTION: ", exception?.InnerException);
             }
         }
         public void Info(string message, StackTrace stackTrace = null)
