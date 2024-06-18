@@ -15,7 +15,7 @@ namespace AndoIt.Common.Common
 		{
 			this.log = log;
 		}
-		public T Insist<T>(Func<T> func, int retrayes, int millisecondsDelay = 0)
+		public T Insist<T>(Func<T> func, int retries, int millisecondsDelay = 0)
 		{
 			int tryNumber = 1;
 			Exception exception = null;
@@ -37,7 +37,7 @@ namespace AndoIt.Common.Common
 				{
 					tryNumber++;
 				}
-			} while (exception != null && tryNumber <= retrayes);
+			} while (exception != null && tryNumber <= retries);
 			throw exception;
 		}
 		public void Insist(Action action, int retrayes, int millisecondsDelay = 0)
