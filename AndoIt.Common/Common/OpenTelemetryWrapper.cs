@@ -37,8 +37,6 @@ namespace AndoIt.Common
                 {
                     options.AddOtlpExporter(exporterOptions =>
                     {
-                        //options.Endpoint = new Uri("https://otlp-http.apps.ocpmovistar001.interactivos.int");
-                        //exporterOptions.Endpoint = new Uri("http://collector-opentelemetry-collector.opentelemetry.svc.cluster.local:4317");
                         exporterOptions.Endpoint = collectorUri;
                         exporterOptions.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
                     });
@@ -52,8 +50,6 @@ namespace AndoIt.Common
                 .AddConsoleExporter()
                 .AddOtlpExporter(exporterOptions =>
                 {
-                    //options.Endpoint = new Uri("https://otlp-http.apps.ocpmovistar001.interactivos.int");
-                    //exporterOptions.Endpoint = new Uri("http://collector-opentelemetry-collector.opentelemetry.svc.cluster.local:4317");
                     exporterOptions.Endpoint = collectorUri;
                     exporterOptions.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
                 })
