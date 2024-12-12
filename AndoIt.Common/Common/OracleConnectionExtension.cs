@@ -7,9 +7,9 @@ namespace AndoIt.Common.Common
 {
 	public static class OracleConnectionExtension
 	{
-		public static void EnsureDatabaseConnection(this OracleConnection oracleConnection)
+		public static void EnsureDatabaseConnection(this OracleConnection oracleConnection, ILog log = null)
 		{
-			var log = IoCObjectContainer.Singleton.Get<ILog>();
+			if (log == null) log = IoCObjectContainer.Singleton.Get<ILog>();
 			try
 			{
 				new Insister(log).Insist(new Action(() => oracleConnection.OpenIfNeeded()), 5);
@@ -20,10 +20,10 @@ namespace AndoIt.Common.Common
 			}
 		}
 
-		public static void OpenIfNeeded(this OracleConnection oracleConnection)
+		public static void OpenIfNeeded(this OracleConnection oracleConnection, ILog log = null)
 		{
-			var log = IoCObjectContainer.Singleton.Get<ILog>();
-			if (oracleConnection.State != ConnectionState.Open)
+            if (log == null) log = IoCObjectContainer.Singleton.Get<ILog>();
+            if (oracleConnection.State != ConnectionState.Open)
 			{
 				oracleConnection.Open();
 				log.Debug("Connection.Open();");
