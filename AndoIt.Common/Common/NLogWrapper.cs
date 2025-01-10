@@ -18,7 +18,9 @@ namespace AndoIt.Common
 
 		public string FORBIDDEN_WORD_CHARACTERS = "XXXXXXXXXXXXXXXXXXXX";
 
-		public NLogWrapper(Logger wrappedLog, ILog incidenceEscalator = null, List<string> forbiddenWords = null)
+        public Logger WrappedLog => wrappedLog;
+
+        public NLogWrapper(Logger wrappedLog, ILog incidenceEscalator = null, List<string> forbiddenWords = null)
 		{
 			this.wrappedLog = wrappedLog ?? throw new ArgumentNullException("wrappedLog");			
 			this.incidenceEscalator = incidenceEscalator;
@@ -33,26 +35,26 @@ namespace AndoIt.Common
 			this.incidenceEscalator?.Fatal(message, exception, stackTrace);
 			if (stackTrace != null) message = $"{stackTrace.ToStringClassMethod()}: {message}{Environment.NewLine}" 
 					+ $"Params: {ParamsToString(stackTrace.GetFrame(0).GetMethod(), paramValues)}{Environment.NewLine}{stackTrace.ToString()}";
-			this.wrappedLog.Fatal(exception, message);			
+			this.WrappedLog.Fatal(exception, message);			
 		}		
 		public void Error(string message, Exception exception = null, StackTrace stackTrace = null, params object[] paramValues)
 		{
 			this.incidenceEscalator?.Error(message, exception, stackTrace);
 			if (stackTrace != null) message = $"{stackTrace.ToStringClassMethod()}: {message}{Environment.NewLine}"
 					+ $"Params: {ParamsToString(stackTrace.GetFrame(0).GetMethod(), paramValues)}{Environment.NewLine}{stackTrace.ToString()}";
-			this.wrappedLog.Error(exception, message);
+			this.WrappedLog.Error(exception, message);
 		}				
 		public void Warn(string message, Exception exception = null, StackTrace stackTrace = null)
 		{
 			this.incidenceEscalator?.Warn(message, exception, stackTrace);
 			if (stackTrace != null) message = $"{stackTrace.ToStringClassMethod()}: {message}{Environment.NewLine}{stackTrace.ToString()}";
-			this.wrappedLog.Warn(exception, message);
+			this.WrappedLog.Warn(exception, message);
 		}		
 		public void Info(string message, StackTrace stackTrace = null)
 		{
 			this.incidenceEscalator?.Info(message, stackTrace);
 			if (stackTrace != null) message = $"{stackTrace.ToStringClassMethod()}: {message}";
-			this.wrappedLog.Info(message);			
+			this.WrappedLog.Info(message);			
 		}
 		public void InfoSafe(string message, StackTrace stackTrace)
 		{
@@ -75,7 +77,7 @@ namespace AndoIt.Common
 		{
 			this.incidenceEscalator?.Debug(message, stackTrace);
 			if (stackTrace != null) message = $"{stackTrace.ToStringClassMethod()}: {message}";
-			this.wrappedLog.Debug(message);
+			this.WrappedLog.Debug(message);
 		}
 		public void Dispose()
 		{
