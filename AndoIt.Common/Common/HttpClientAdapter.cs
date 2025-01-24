@@ -323,7 +323,8 @@ namespace AndoIt.Common
                 content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
                 var responseMessage = webApiClient.PostAsync(string.Empty, content).Result;
                 string responseBody = responseMessage.Content.ReadAsStringAsync().Result;
-                this.LogListener?.Message(ResponseToString(responseMessage));
+                this.LogListener?.Message(ResponseToString(responseMessage) 
+                    + $" {Environment.NewLine}Url: {url}. Body: {body}. Credentials: {credentials?.UserName}. Headers: {this.AuthenticationHeaderValue?.ToString()}. ");
                 return responseMessage;
             }
         }
@@ -343,7 +344,8 @@ namespace AndoIt.Common
 
         private static string ResponseToString(HttpResponseMessage responseMessage)
         {
-            return $"ReasonPhrase = '{responseMessage.ReasonPhrase.ToString()}'. StatusCode={(int)responseMessage.StatusCode}. Headers = '{responseMessage.Headers}'. Content = '{JsonConvert.SerializeObject(responseMessage.Content)}'";
+            return $"ReasonPhrase = '{responseMessage.ReasonPhrase.ToString()}'. StatusCode={(int)responseMessage.StatusCode}. Headers = '{responseMessage.Headers}'.{Environment.NewLine}"
+                + $"Content = '{JsonConvert.SerializeObject(responseMessage.Content)}'.";
         }
 
         public T AllCookedUpGet<T>(string url, NetworkCredential credentials = null)
