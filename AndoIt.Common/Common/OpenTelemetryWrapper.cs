@@ -170,7 +170,7 @@ namespace AndoIt.Common
             }
             using (var activity = OpenTelemetryWrapper.ActivitySource.StartActivity("OperacionPrincipal", ActivityKind.Server))
             {
-                var keyValues = valueToLog.ObtenerKeyValue();
+                var keyValues = valueToLog.GetKeyValue();
                 foreach (var pair in keyValues)
                 {
                     activity?.SetTag(pair.Key, pair.Value);

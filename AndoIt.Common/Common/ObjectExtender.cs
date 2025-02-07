@@ -13,7 +13,7 @@ namespace AndoIt.Common.Core.Common
             return result;
         }
 
-        public static Dictionary<string, object> ObtenerKeyValue(this object obj, string prefix = "")
+        public static Dictionary<string, object> GetKeyValue(this object obj, string prefix = "")
         {
             var keyValuePairs = new Dictionary<string, object>();
 
@@ -33,7 +33,7 @@ namespace AndoIt.Common.Core.Common
                 int index = 0;
                 foreach (var item in enumerable)
                 {
-                    foreach (var kvp in item.ObtenerKeyValue($"{prefix}[{index}]"))
+                    foreach (var kvp in item.GetKeyValue($"{prefix}[{index}]"))
                     {
                         keyValuePairs[kvp.Key] = kvp.Value;
                     }
@@ -53,7 +53,7 @@ namespace AndoIt.Common.Core.Common
                 }
                 else
                 {
-                    foreach (var kvp in value.ObtenerKeyValue(key))
+                    foreach (var kvp in value.GetKeyValue(key))
                     {
                         keyValuePairs[kvp.Key] = kvp.Value;
                     }
