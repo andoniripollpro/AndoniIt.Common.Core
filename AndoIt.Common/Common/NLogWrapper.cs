@@ -1,5 +1,6 @@
 ﻿using AndoIt.Common.Common;
 using AndoIt.Common.Interface;
+using Newtonsoft.Json;
 using NLog;
 using System;
 using System.Collections.Generic;
@@ -99,5 +100,10 @@ namespace AndoIt.Common
 			msg += ")";
 			return string.Format(msg, namevalues);
 		}
-	}
+        public void InfoObject(object valueToLog)
+        {
+            this.incidenceEscalator?.InfoObject(valueToLog);
+            this.Warn($"InfoObject no pensado para este objeto log: {JsonConvert.SerializeObject(valueToLog)}");
+        }
+    }
 }

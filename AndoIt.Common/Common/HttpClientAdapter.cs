@@ -16,6 +16,7 @@ namespace AndoIt.Common
         public delegate void Log(string message);
 
         private HttpClientAdapter.ILog logListener = null;
+        private AndoIt.Common.Interface.ILog log = null;
         private int? timeoutSeconds = null;
         private AuthenticationHeaderValue authenticationHeaderValue = null;
 
@@ -34,6 +35,11 @@ namespace AndoIt.Common
         {
             get => this.logListener;
             set { this.logListener = value; }
+        }
+        public Interface.ILog StandardLog
+        {
+            get => this.log;
+            set { this.log = value; }
         }
         public int? TimeoutSeconds
         {
@@ -61,6 +67,7 @@ namespace AndoIt.Common
             this.LogListener?.Message($"Antes del POST {url}. Credentials: {credentials?.UserName} Headers: {this.AuthenticationHeaderValue?.ToString()} Body: {body}. ");
 
             var responseMessage = this.StandardPost(url, body, credentials);
+            LogCallNResponse("AllCookedUpPost", url, body, credentials, responseMessage);
             if (!responseMessage.IsSuccessStatusCode)
                 throw new Exception(ResponseToString(responseMessage));
             string response = responseMessage.Content.ReadAsStringAsync().Result;
@@ -77,7 +84,7 @@ namespace AndoIt.Common
                 var content = new StringContent(body, Encoding.UTF8, "text/xml");
 
                 var responseMessage = webApiClient.PostAsync(url, content).Result;
-                this.LogListener?.Message(ResponseToString(responseMessage));
+                LogCallNResponse("AllCookedUpSoap", url, body, credentials, responseMessage);
                 if (!responseMessage.IsSuccessStatusCode)
                     throw new Exception(ResponseToString(responseMessage));
                 return ExtractFromTaskWithEncoding(responseMessage.Content).Result;
@@ -158,7 +165,7 @@ namespace AndoIt.Common
             using (var webApiClient = this.GetDisposableHttpClient(url, credentials))
             {
                 var responseMessage = webApiClient.DeleteAsync(urn).Result;
-                this.LogListener?.Message(ResponseToString(responseMessage));
+                LogCallNResponse("StandardDelete", url, null, credentials, responseMessage);
                 return responseMessage;
             }
         }
@@ -200,12 +207,28 @@ namespace AndoIt.Common
             string response = "ERROR";
 
             var responseMessage = this.StandardPut(url, body, credentials);
-            this.LogListener?.Message(ResponseToString(responseMessage));
+            LogCallNResponse("AllCookedUpPut", url, body, credentials, responseMessage);
             if (!responseMessage.IsSuccessStatusCode)
                 throw new Exception(ResponseToString(responseMessage));
             response = $"StatusCode: {responseMessage.StatusCode}, Status: {responseMessage.ReasonPhrase}, Body: {responseMessage.Content.ReadAsStringAsync().Result}";
 
             return response;
+        }
+
+        private void LogCallNResponse(string opetarionDesc, string url, object body, NetworkCredential credentials, HttpResponseMessage responseMessage)
+        {
+            string bodyMessage = (body != null)? $"{ Environment.NewLine}Body: {body}. " : string.Empty;
+            this.LogListener?.Message(opetarionDesc + ": " + ResponseToString(responseMessage)
+                    + $" {Environment.NewLine}Url: {url}. "
+                    + $" {Environment.NewLine}Credentials: {credentials?.UserName}. Headers: {this.AuthenticationHeaderValue?.ToString()}. ");
+            this.StandardLog?.InfoObject(
+                new { 
+                    OperationDesc = opetarionDesc,
+                    Url = url,
+                    Body = body,
+                    Credentials = credentials,
+                    ResponseMessage = responseMessage
+                });
         }
 
         public HttpResponseMessage StandardPut(string url, object body, NetworkCredential credentials = null)
@@ -228,7 +251,7 @@ namespace AndoIt.Common
         }
         public WebResponse StandardPatch(string url, object body, NetworkCredential credentials = null)
         {
-            this.LogListener?.Message($" Patching{body} to {url}");
+            this.LogListener?.Message($" Patching {body} to {url}");
 
             HttpWebRequest httpWebRequest = (HttpWebRequest)WebRequest.Create(url);
             httpWebRequest.ContentType = "application/json";
@@ -308,7 +331,7 @@ namespace AndoIt.Common
             using (var wepApiClient = this.GetDisposableHttpClient(url, credentials))
             {
                 responseMessage = wepApiClient.GetAsync(string.Empty).Result;
-                this.LogListener?.Message($"Response: '{ResponseToString(responseMessage)}'");
+                LogCallNResponse("StandardGet", url, null, credentials, responseMessage);
             }
             return responseMessage;
         }
@@ -323,8 +346,7 @@ namespace AndoIt.Common
                 content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
                 var responseMessage = webApiClient.PostAsync(string.Empty, content).Result;
                 string responseBody = responseMessage.Content.ReadAsStringAsync().Result;
-                this.LogListener?.Message(ResponseToString(responseMessage) 
-                    + $" {Environment.NewLine}Url: {url}. Body: {body}. Credentials: {credentials?.UserName}. Headers: {this.AuthenticationHeaderValue?.ToString()}. ");
+                LogCallNResponse("StandardPost", url, body, credentials, responseMessage);
                 return responseMessage;
             }
         }
@@ -355,7 +377,7 @@ namespace AndoIt.Common
             using (var wepApiClient = this.GetDisposableHttpClient(url, credentials))
             {
                 var responseMessage = wepApiClient.GetAsync(string.Empty).Result;
-                this.LogListener?.Message(ResponseToString(responseMessage));
+                LogCallNResponse("AllCookedUpGet<T>", url, null, credentials, responseMessage);
                 if (!responseMessage.IsSuccessStatusCode)
                     throw new Exception(ResponseToString(responseMessage));
                 var response = JsonConvert.DeserializeObject<T>(responseMessage.Content.ReadAsStringAsync().Result);

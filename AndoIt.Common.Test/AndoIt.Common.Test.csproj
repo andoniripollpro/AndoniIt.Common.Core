@@ -23,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AndoIt.Common\AndoIt.Common.Core.csproj" />
     <ProjectReference Include="..\AndoIt.Common\AndoIt.Common.csproj" />
   </ItemGroup>
 

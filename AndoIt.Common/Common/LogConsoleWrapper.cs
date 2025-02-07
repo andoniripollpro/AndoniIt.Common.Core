@@ -1,5 +1,6 @@
 ﻿using AndoIt.Common.Common;
 using AndoIt.Common.Interface;
+using Newtonsoft.Json;
 using System;
 using System.Diagnostics;
 
@@ -8,11 +9,13 @@ namespace AndoIt.Common
 	public class LogConsoleWrapper : ILog, IDisposable
 	{
 		private readonly LogLevel logLevel;
+		private readonly ILog incidenceEscalator;
 
-		public LogConsoleWrapper(LogLevel logLevel)
+        public LogConsoleWrapper(LogLevel logLevel, ILog incidenceEscalator = null)
 		{
 			this.logLevel = logLevel;
-		}
+            this.incidenceEscalator = incidenceEscalator;
+        }
 				
 		public void Fatal(string message, Exception exception = null, StackTrace stackTrace = null, params object[] paramValues)
 		{
@@ -55,8 +58,13 @@ namespace AndoIt.Common
 		public void Dispose()
 		{
 		}
+        public void InfoObject(object valueToLog)
+        {
+            this.incidenceEscalator?.InfoObject(valueToLog);
+            this.Warn($"InfoObject no pensado para este objeto log: {JsonConvert.SerializeObject(valueToLog)}");
+        }
 
-		public enum LogLevel
+        public enum LogLevel
 		{ 
 			Fatal = 5,
 			Error = 4,

@@ -9,6 +9,8 @@ using OpenTelemetry.Logs;
 using OpenTelemetry.Trace;
 using OpenTelemetry;
 using Microsoft.Extensions.Options;
+using System.Xml.Linq;
+using AndoIt.Common.Core.Common;
 
 namespace AndoIt.Common
 {
@@ -18,6 +20,8 @@ namespace AndoIt.Common
         private readonly Tracer tracer;
         private readonly ILog incidenceEscalator;
         public readonly List<string> forbiddenWords = new List<string>();
+
+        private static readonly ActivitySource ActivitySource = new("MiAplicacionTracer");
 
         public string FORBIDDEN_WORD_CHARACTERS = "XXXXXXXXXXXXXXXXXXXX";
 
@@ -130,7 +134,7 @@ namespace AndoIt.Common
         public void EscribeTrazaError(string message)
         {
             // Crear y empezar una nueva traza
-            using (var span = tracer.StartActiveSpan($"Error-{DateTime.Now.ToString("yyyy-MMM-dd")}"))
+            using (var span = this.tracer.StartActiveSpan($"Error-{DateTime.Now.ToString("yyyy-MMM-dd")}"))
             {
                 // Añadir el estado de error al span
                 span.SetStatus(Status.Error.WithDescription(message));
@@ -138,7 +142,7 @@ namespace AndoIt.Common
         }        
         public void Dispose()
         {
-            //  En reoría no hay que hacer nada
+            //   En reoría no hay que hacer nada
         }
         private string ParamsToString(MethodBase method, params object[] values)
         {
@@ -154,6 +158,41 @@ namespace AndoIt.Common
             }
             msg += ")";
             return string.Format(msg, namevalues);
+        }
+
+        public void InfoObject(object valueToLog)
+        {
+            this.incidenceEscalator?.InfoObject(valueToLog);
+            this.wrappedLog.LogInformation("TodaInfo", valueToLog);
+            using (wrappedLog.BeginScope(valueToLog))
+            {
+                this.wrappedLog.LogInformation("BeginScope!");                
+            }
+            using (var activity = OpenTelemetryWrapper.ActivitySource.StartActivity("OperacionPrincipal", ActivityKind.Server))
+            {
+                var keyValues = valueToLog.ObtenerKeyValue();
+                foreach (var pair in keyValues)
+                {
+                    activity?.SetTag(pair.Key, pair.Value);
+                }
+                activity?.SetTag("TodosLosDatosEnFeo", valueToLog);
+            }
+            using (var span = this.tracer.StartActiveSpan($"Span-{DateTime.Now.ToString("yyyy-MMM-dd")}"))
+            {
+                span.SetStatus(Status.Ok.WithDescription("Status"));
+                var list = new List<KeyValuePair<string, object>>();
+                list.Add(new KeyValuePair<string, object>("Todo", valueToLog));
+                span.AddEvent("Event", DateTime.Now, new SpanAttributes(list));
+            }
+            //using (var span = this.tracer.StartActiveSpan($"Error-{DateTime.Now.ToString("yyyy-MMM-dd")}"))
+            //{
+            //    // Añadir el estado de error al span
+            //    span.SetStatus(Status.Error.WithDescription("Trace"));
+            //using (var subActivity = this.tracer.StartActivity("SubProceso"))
+            //{
+            //    subActivity?.SetTag("TodaLaInfo", valueToLog);                    
+            //}
+            //}
         }
     }
 }
