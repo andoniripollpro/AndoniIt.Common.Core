@@ -13,12 +13,23 @@ namespace AndoIt.Common.Core.Common
             return result;
         }
 
-        public static Dictionary<string, object> GetKeyValue(this object obj, string prefix = "")
+        public static Dictionary<string, object> GetKeyValue(this object obj, string prefix = "", HashSet<object> visitedObjects = null)
         {
             var keyValuePairs = new Dictionary<string, object>();
 
             if (obj == null)
                 return keyValuePairs;
+
+            // Si es la primera llamada, inicializar el conjunto de objetos visitados
+            visitedObjects ??= new HashSet<object>(new ReferenceEqualityComparer());
+
+            // Si ya hemos visitado este objeto, evitamos un bucle infinito
+            if (!visitedObjects.Add(obj))
+                return keyValuePairs;
+            //if (visitedObjects.Contains(obj))
+            //    return keyValuePairs;
+            //else 
+            //    visitedObjects.Add(obj);
 
             Type objType = obj.GetType();
 
@@ -33,7 +44,7 @@ namespace AndoIt.Common.Core.Common
                 int index = 0;
                 foreach (var item in enumerable)
                 {
-                    foreach (var kvp in item.GetKeyValue($"{prefix}[{index}]"))
+                    foreach (var kvp in item.GetKeyValue($"{prefix}[{index}]", visitedObjects))
                     {
                         keyValuePairs[kvp.Key] = kvp.Value;
                     }
@@ -53,7 +64,7 @@ namespace AndoIt.Common.Core.Common
                 }
                 else
                 {
-                    foreach (var kvp in value.GetKeyValue(key))
+                    foreach (var kvp in value.GetKeyValue(key, visitedObjects))
                     {
                         keyValuePairs[kvp.Key] = kvp.Value;
                     }

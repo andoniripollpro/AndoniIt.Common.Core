@@ -124,5 +124,21 @@ namespace AndoIt.Common.Test.Common
 
             Assert.AreEqual(0, result.Count);
         }
+
+        [TestMethod]
+        public void GetKeyValue_InfiniteDependency_DetectedAndCutted()
+        {
+            var obj = new ObjetoInfinitable();
+            obj.MiembroInfinitable = obj;
+            
+            var result = obj.GetKeyValue();
+
+            Assert.AreEqual(0, result.Count);
+        }
+
+        public class ObjetoInfinitable
+        { 
+            public ObjetoInfinitable MiembroInfinitable { get; set; }
+        }
     }
 }
