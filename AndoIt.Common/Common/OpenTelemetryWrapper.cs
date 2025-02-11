@@ -18,6 +18,7 @@ namespace AndoIt.Common
     {
         private readonly ILogger<object> wrappedLog;
         private readonly Tracer tracer;
+        private readonly Uri collectorUri;
         private readonly ILog incidenceEscalator;
         public readonly List<string> forbiddenWords = new List<string>();
 
@@ -28,6 +29,7 @@ namespace AndoIt.Common
         public OpenTelemetryWrapper(Uri collectorUri, ILog incidenceEscalator = null, List<string> forbiddenWords = null)
         {
             if (collectorUri == null) throw new ArgumentNullException("collectorUri no puede ser nulo y debe tener la uri del colector de OTEL-OpenTelemetry");
+            this.collectorUri = collectorUri;
             this.incidenceEscalator = incidenceEscalator;
             if (forbiddenWords != null)
             {
@@ -61,6 +63,8 @@ namespace AndoIt.Common
 
             // Obtener el tracer
             this.tracer = openTelemetry.GetTracer("Common.OpenTelemetryWrapper");
+            //this.tracer = new ActivitySource("Common.OpenTelemetryWrapper");
+
         }
 
         public void Fatal(string message, Exception exception = null, StackTrace stackTrace = null, params object[] paramValues)
@@ -162,28 +166,32 @@ namespace AndoIt.Common
 
         public void InfoObject(object valueToLog)
         {
-            this.incidenceEscalator?.InfoObject(valueToLog);
-            this.wrappedLog.LogInformation("TodaInfo", valueToLog);
-            using (wrappedLog.BeginScope(valueToLog))
-            {
-                this.wrappedLog.LogInformation("BeginScope!");                
-            }
-            using (var activity = OpenTelemetryWrapper.ActivitySource.StartActivity("OperacionPrincipal", ActivityKind.Server))
-            {
-                var keyValues = valueToLog.GetKeyValue();
-                foreach (var pair in keyValues)
-                {
-                    activity?.SetTag(pair.Key, pair.Value);
-                }
-                activity?.SetTag("TodosLosDatosEnFeo", valueToLog);
-            }
-            using (var span = this.tracer.StartActiveSpan($"Span-{DateTime.Now.ToString("yyyy-MMM-dd")}"))
-            {
-                span.SetStatus(Status.Ok.WithDescription("Status"));
-                var list = new List<KeyValuePair<string, object>>();
-                list.Add(new KeyValuePair<string, object>("Todo", valueToLog));
-                span.AddEvent("Event", DateTime.Now, new SpanAttributes(list));
-            }
+            this.wrappedLog.LogInformation("{@TodaInfo}", valueToLog);
+
+            var tracer = new OpenTelemetryWrapperAI(this.collectorUri);
+            tracer.StartTrace(valueToLog);
+
+            //this.incidenceEscalator?.InfoObject(valueToLog);
+            //using (wrappedLog.BeginScope(valueToLog))
+            //{
+            //    this.wrappedLog.LogInformation("BeginScope!");
+            //}
+            //using (var activity = OpenTelemetryWrapper.ActivitySource.StartActivity("OperacionPrincipal", ActivityKind.Server))
+            //{
+            //    var keyValues = valueToLog.GetKeyValue();
+            //    foreach (var pair in keyValues)
+            //    {
+            //        activity?.SetTag(pair.Key, pair.Value);
+            //    }
+            //    activity?.SetTag("TodosLosDatosEnFeo", valueToLog);
+            //}
+            //using (var span = this.tracer.StartActiveSpan($"Span-{DateTime.Now.ToString("yyyy-MMM-dd")}"))
+            //{
+            //    span.SetStatus(Status.Ok.WithDescription("Status"));
+            //    var list = new List<KeyValuePair<string, object>>();
+            //    list.Add(new KeyValuePair<string, object>("Todo", valueToLog));
+            //    span.AddEvent("Event", DateTime.Now, new SpanAttributes(list));
+            //}
             //using (var span = this.tracer.StartActiveSpan($"Error-{DateTime.Now.ToString("yyyy-MMM-dd")}"))
             //{
             //    // Añadir el estado de error al span

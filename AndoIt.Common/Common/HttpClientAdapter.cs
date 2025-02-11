@@ -1,4 +1,5 @@
 ﻿using AndoIt.Common.Interface;
+using Microsoft.AspNetCore.WebUtilities;
 using Newtonsoft.Json;
 using System;
 using System.IO;
@@ -215,22 +216,6 @@ namespace AndoIt.Common
             return response;
         }
 
-        private void LogCallNResponse(string opetarionDesc, string url, object body, NetworkCredential credentials, HttpResponseMessage responseMessage)
-        {
-            string bodyMessage = (body != null)? $"{ Environment.NewLine}Body: {body}. " : string.Empty;
-            this.LogListener?.Message(opetarionDesc + ": " + ResponseToString(responseMessage)
-                    + $" {Environment.NewLine}Url: {url}. "
-                    + $" {Environment.NewLine}Credentials: {credentials?.UserName}. Headers: {this.AuthenticationHeaderValue?.ToString()}. ");
-            this.StandardLog?.InfoObject(
-                new { 
-                    OperationDesc = opetarionDesc,
-                    Url = url,
-                    Body = body,
-                    Credentials = credentials,
-                    ResponseMessage = responseMessage
-                });
-        }
-
         public HttpResponseMessage StandardPut(string url, object body, NetworkCredential credentials = null)
         {
             this.LogListener?.Message($"Antes del Standard PUT {url}. Credentials: {credentials?.UserName}. Headers: {this.AuthenticationHeaderValue.ToString()}. Body: {body}");
@@ -384,6 +369,32 @@ namespace AndoIt.Common
                 return response;
             }
         }
+
+        private void LogCallNResponse(string opetarionDesc, string url, object body, NetworkCredential credentials, HttpResponseMessage responseMessage)
+        {
+            this.LogListener?.Message("LogCallNResponse");
+            string bodyMessage = (body != null) ? JsonConvert.SerializeObject(body) : "null";
+            this.LogListener?.Message(opetarionDesc + ": " + ResponseToString(responseMessage)
+                    + $" {Environment.NewLine}Url: {url}."
+                    + $" {Environment.NewLine}Body: {bodyMessage}"
+                    + $" {Environment.NewLine}Credentials: {credentials?.UserName}. Headers: {this.AuthenticationHeaderValue?.ToString()}. ");
+            string statusCodeStr = responseMessage.StatusCode.ToString();
+            this.StandardLog?.InfoObject(
+                new
+                {
+                    Cosas = "Catalanes",
+                    Status = statusCodeStr,
+                    StatusCode = (int)responseMessage.StatusCode,
+                    ReasonPhrases = responseMessage.ReasonPhrase,
+                    OperationDesc = opetarionDesc,
+                    Url = url,
+                    Body = body,
+                    Credentials = credentials,
+                    ResponseMessage = responseMessage
+                });
+            this.LogListener?.Message("LogCallNResponse");
+        }
+
 
         public interface ILog
         {
