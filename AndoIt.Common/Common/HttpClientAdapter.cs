@@ -68,10 +68,10 @@ namespace AndoIt.Common
             this.LogListener?.Message($"Antes del POST {url}. Credentials: {credentials?.UserName} Headers: {this.AuthenticationHeaderValue?.ToString()} Body: {body}. ");
 
             var responseMessage = this.StandardPost(url, body, credentials);
-            LogCallNResponse("AllCookedUpPost", url, body, credentials, responseMessage);
             if (!responseMessage.IsSuccessStatusCode)
                 throw new Exception(ResponseToString(responseMessage));
             string response = responseMessage.Content.ReadAsStringAsync().Result;
+            this.LogListener?.Message("AllCookedUpPost end");
             return response;
 
         }
@@ -166,7 +166,7 @@ namespace AndoIt.Common
             using (var webApiClient = this.GetDisposableHttpClient(url, credentials))
             {
                 var responseMessage = webApiClient.DeleteAsync(urn).Result;
-                LogCallNResponse("StandardDelete", url, null, credentials, responseMessage);
+                this.logListener?.Message("AllCookedUpDelete end");
                 return responseMessage;
             }
         }
@@ -208,11 +208,11 @@ namespace AndoIt.Common
             string response = "ERROR";
 
             var responseMessage = this.StandardPut(url, body, credentials);
-            LogCallNResponse("AllCookedUpPut", url, body, credentials, responseMessage);
+            
             if (!responseMessage.IsSuccessStatusCode)
                 throw new Exception(ResponseToString(responseMessage));
             response = $"StatusCode: {responseMessage.StatusCode}, Status: {responseMessage.ReasonPhrase}, Body: {responseMessage.Content.ReadAsStringAsync().Result}";
-
+            this.logListener?.Message("AllCookedUpPut end");
             return response;
         }
 
@@ -345,7 +345,7 @@ namespace AndoIt.Common
             if (!responseMessage.IsSuccessStatusCode)
                 throw new Exception(ResponseToString(responseMessage));
             response = responseMessage.Content.ReadAsStringAsync().Result;
-
+            this.logListener?.Message("AllCookedUpGet end");
             return response;
         }
 
@@ -382,7 +382,7 @@ namespace AndoIt.Common
             this.StandardLog?.InfoObject(
                 new
                 {
-                    Cosas = "Catalanes",
+                    Desciption = "HttpClientAdapter: operación finalizada",
                     Status = statusCodeStr,
                     StatusCode = (int)responseMessage.StatusCode,
                     ReasonPhrases = responseMessage.ReasonPhrase,
@@ -394,7 +394,6 @@ namespace AndoIt.Common
                 });
             this.LogListener?.Message("LogCallNResponse");
         }
-
 
         public interface ILog
         {

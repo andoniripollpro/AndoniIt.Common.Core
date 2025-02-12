@@ -170,37 +170,6 @@ namespace AndoIt.Common
 
             var tracer = new OpenTelemetryWrapperAI(this.collectorUri);
             tracer.StartTrace(valueToLog);
-
-            //this.incidenceEscalator?.InfoObject(valueToLog);
-            //using (wrappedLog.BeginScope(valueToLog))
-            //{
-            //    this.wrappedLog.LogInformation("BeginScope!");
-            //}
-            //using (var activity = OpenTelemetryWrapper.ActivitySource.StartActivity("OperacionPrincipal", ActivityKind.Server))
-            //{
-            //    var keyValues = valueToLog.GetKeyValue();
-            //    foreach (var pair in keyValues)
-            //    {
-            //        activity?.SetTag(pair.Key, pair.Value);
-            //    }
-            //    activity?.SetTag("TodosLosDatosEnFeo", valueToLog);
-            //}
-            //using (var span = this.tracer.StartActiveSpan($"Span-{DateTime.Now.ToString("yyyy-MMM-dd")}"))
-            //{
-            //    span.SetStatus(Status.Ok.WithDescription("Status"));
-            //    var list = new List<KeyValuePair<string, object>>();
-            //    list.Add(new KeyValuePair<string, object>("Todo", valueToLog));
-            //    span.AddEvent("Event", DateTime.Now, new SpanAttributes(list));
-            //}
-            //using (var span = this.tracer.StartActiveSpan($"Error-{DateTime.Now.ToString("yyyy-MMM-dd")}"))
-            //{
-            //    // Añadir el estado de error al span
-            //    span.SetStatus(Status.Error.WithDescription("Trace"));
-            //using (var subActivity = this.tracer.StartActivity("SubProceso"))
-            //{
-            //    subActivity?.SetTag("TodaLaInfo", valueToLog);                    
-            //}
-            //}
         }
     }
 }

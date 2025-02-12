@@ -56,8 +56,7 @@ public class OpenTelemetryWrapperAI
                 return;
             }
 
-            activity.SetTag("user_id", 54321);
-            activity.SetTag("operation", "processing request");
+            activity.SetTag("TagManual", "Es manual");
             // Loguear las tags para ver qué se está asignando
             Console.WriteLine($"Trace iniciado: {activity.DisplayName}");
             foreach (var tag in activity.Tags)
