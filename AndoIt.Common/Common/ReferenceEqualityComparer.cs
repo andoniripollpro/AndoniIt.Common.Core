@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace AndoIt.Common.Core.Common
+namespace AndoIt.Common
 {
     /// <summary>
     /// Comparador para evitar referencias circulares en HashSet

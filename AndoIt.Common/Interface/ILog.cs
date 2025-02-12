@@ -12,6 +12,6 @@ namespace AndoIt.Common.Interface
 		void InfoSafe(string message, StackTrace stackTrace);
 		void DebugSafe(string message, StackTrace stackTrace);
 		void Debug(string message, StackTrace stackTrace = null);
-        void InfoObject(object valueToLog);
+        void InfoObject(object objectToTrace);
     }
 }

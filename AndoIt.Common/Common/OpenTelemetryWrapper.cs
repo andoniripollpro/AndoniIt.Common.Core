@@ -8,16 +8,16 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Trace;
 using OpenTelemetry;
-using Microsoft.Extensions.Options;
-using System.Xml.Linq;
-using AndoIt.Common.Core.Common;
 
 namespace AndoIt.Common
 {
     public class OpenTelemetryWrapper : ILog, IDisposable
     {
+        private const string SOURCE = "OpenTelemetryWrapper";
         private readonly ILogger<object> wrappedLog;
         private readonly Tracer tracer;
+        private readonly ActivitySource activitySource;
+        private readonly TracerProvider tracerProvider;
         private readonly Uri collectorUri;
         private readonly ILog incidenceEscalator;
         public readonly List<string> forbiddenWords = new List<string>();
@@ -51,8 +51,11 @@ namespace AndoIt.Common
             });
             this.wrappedLog = loggerFactory.CreateLogger<Object>();
 
-            //  Trace
-            using var openTelemetry = Sdk.CreateTracerProviderBuilder()
+            this.activitySource = new ActivitySource(SOURCE);
+
+            this.tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .SetSampler(new AlwaysOnSampler())
+                .AddSource(SOURCE)  // 📌 Necesario para capturar spans
                 .AddConsoleExporter()
                 .AddOtlpExporter(exporterOptions =>
                 {
@@ -60,11 +63,7 @@ namespace AndoIt.Common
                     exporterOptions.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
                 })
                 .Build();
-
-            // Obtener el tracer
-            this.tracer = openTelemetry.GetTracer("Common.OpenTelemetryWrapper");
-            //this.tracer = new ActivitySource("Common.OpenTelemetryWrapper");
-
+            this.tracer = tracerProvider.GetTracer(SOURCE);
         }
 
         public void Fatal(string message, Exception exception = null, StackTrace stackTrace = null, params object[] paramValues)
@@ -138,7 +137,7 @@ namespace AndoIt.Common
         public void EscribeTrazaError(string message)
         {
             // Crear y empezar una nueva traza
-            using (var span = this.tracer.StartActiveSpan($"Error-{DateTime.Now.ToString("yyyy-MMM-dd")}"))
+            using (var span = this.tracer?.StartActiveSpan($"Error-{DateTime.Now.ToString("yyyy-MMM-dd")}"))
             {
                 // Añadir el estado de error al span
                 span.SetStatus(Status.Error.WithDescription(message));
@@ -164,12 +163,27 @@ namespace AndoIt.Common
             return string.Format(msg, namevalues);
         }
 
-        public void InfoObject(object valueToLog)
+        public void InfoObject(object objToTrace)
         {
-            this.wrappedLog.LogInformation("{@TodaInfo}", valueToLog);
+            using (var activity = this.activitySource.StartActivity("TrazaConObjetoEnriquecido", ActivityKind.Server))
+            {
+                this.wrappedLog.LogInformation("Se inició un nuevo trace.");
+                if (activity == null)
+                {
+                    this.wrappedLog.LogError("NO se inició un nuevo trace. ❌ No se pudo iniciar la actividad.");
+                    return;
+                }
 
-            var tracer = new OpenTelemetryWrapperAI(this.collectorUri);
-            tracer.StartTrace(valueToLog);
+                activity.SetTag("TagManual", "Es manual");
+        
+                var keyValues = objToTrace.GetKeyValue();
+                foreach (var pair in keyValues)
+                {
+                    activity?.SetTag(pair.Key, pair.Value);
+                }
+
+                this.wrappedLog.LogInformation($"El objeto que tendría que salir por el trace: {Newtonsoft.Json.JsonConvert.SerializeObject(objToTrace)}");
+            }
         }
     }
 }

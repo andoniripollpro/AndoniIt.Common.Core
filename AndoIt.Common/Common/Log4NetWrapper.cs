@@ -89,10 +89,10 @@ namespace AndoIt.Common
 			return string.Format(msg, namevalues);
 		}
 
-        public void InfoObject(object valueToLog)
+        public void InfoObject(object objectToTrace)
         {
-            this.incidenceEscalator?.InfoObject(valueToLog);
-			this.Warn($"InfoObject no pensado para este objeto log: {JsonConvert.SerializeObject(valueToLog)}");
+            this.incidenceEscalator?.InfoObject(objectToTrace);
+			this.Warn($"InfoObject no pensado para este objeto log: {JsonConvert.SerializeObject(objectToTrace)}");
         }
     }
 }
