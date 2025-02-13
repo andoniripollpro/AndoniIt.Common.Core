@@ -17,7 +17,6 @@ namespace AndoIt.Common
         private readonly ILogger<object> wrappedLog;
         private readonly Tracer tracer;
         private readonly ActivitySource activitySource;
-        private readonly TracerProvider tracerProvider;
         private readonly Uri collectorUri;
         private readonly ILog incidenceEscalator;
         public readonly List<string> forbiddenWords = new List<string>();
@@ -53,7 +52,7 @@ namespace AndoIt.Common
 
             this.activitySource = new ActivitySource(SOURCE);
 
-            this.tracerProvider = Sdk.CreateTracerProviderBuilder()
+            var tracerProvider = Sdk.CreateTracerProviderBuilder()
                 .SetSampler(new AlwaysOnSampler())
                 .AddSource(SOURCE)  // 📌 Necesario para capturar spans
                 .AddConsoleExporter()
