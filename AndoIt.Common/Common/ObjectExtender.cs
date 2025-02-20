@@ -9,7 +9,11 @@ namespace AndoIt.Common
     public static class ObjectExtender
     {
         public static string ObjectToJsonString(this object extended) {
-            string result = JsonConvert.SerializeObject(extended);
+            string result = JsonConvert.SerializeObject(extended,
+                new JsonSerializerSettings
+                {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                });
             return result;
         }
 
