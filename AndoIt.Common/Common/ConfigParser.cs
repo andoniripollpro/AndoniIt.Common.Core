@@ -61,7 +61,11 @@ namespace AndoIt.Common.Common
             {
                 string value = this.GetAsString(tagAddress);
                 value = value?.Replace("[", "").Replace("]", "");
-                return new List<string> (value?.Split(new char[] { separator }, StringSplitOptions.RemoveEmptyEntries)).Select(x => x.Trim()).ToList();
+                var result = value?
+                    .Split(new char[] { separator }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(x => x.Trim().Trim('"', '\'')) // 🔥 Elimina comillas dobles y simples
+                    .ToList();
+                return result;
             }
             catch (Exception ex)
             {

@@ -1,6 +1,7 @@
 ﻿using AndoIt.Common.Interface;
 using RabbitMQ.Client;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using System.Web;
@@ -9,23 +10,41 @@ namespace AndoIt.Common.Common
 {
 	/// <summary>
 	/// Creará el exchange definidos así:
-	/// XXXXXXXXXXXXXXXXX
+	/// autoCreation=true o nada
     /// Y no lo creará con los definidos así
-	/// XXXXXXXXXXXXXXXXXXXXXXX
+	/// autoCreation=false
 	/// </summary>
 	public class RabbitMQPublisher
 	{
 		private readonly ILog log;
 		private readonly ConnectionFactory connectionFactory;
-
+		
 		public RabbitMQPublisher(ILog log, string amqpUrlPublish)
 		{
-			this.log = log ?? throw new ArgumentNullException("log");			
+			this.log.InfoSafe($"Start on amqpUrlPublish '{amqpUrlPublish}'", new StackTrace());
+			this.log = log ?? throw new ArgumentNullException("log");
 			this.connectionFactory = new ConnectionFactory();
 			this.connectionFactory.Uri = new Uri(amqpUrlPublish ?? throw new ArgumentNullException("amqpUrlPublish"));
+
+			if (!this.connectionFactory.Uri.ToString().Contains("autoCreation=false"))
+			{
+				using (IConnection connection = this.connectionFactory.CreateConnection())
+				{
+					using (IModel channel = connection.CreateModel())
+					{
+						this.log.Info($"Llama a CreateExchangeQueueAndLinkIfPossible", new StackTrace());
+						Dictionary<string, object> queueArguments = new Dictionary<string, object>();
+						if (HttpUtility.ParseQueryString(new Uri(amqpUrlPublish).Query).Get("quorum") == "true")
+							queueArguments.Add("x-queue-type", "quorum");
+						var rabbitMqCreator = new RabbitMQCreator(this.log);
+						rabbitMqCreator.CreateExchangeQueueAndLinkIfPossible(this.ExchangeName, channel, queueArguments: queueArguments);
+					}
+				}
+			}
 		}
 
 		public string AmqpUrlPublish => this.connectionFactory.Uri.ToString();
+		public string ExchangeName => HttpUtility.ParseQueryString(this.connectionFactory.Uri.Query).Get("exchange");
 
 		public enum PipeType
 		{
@@ -58,6 +77,7 @@ namespace AndoIt.Common.Common
 					properties.ContentEncoding = "UTF-8";
 					properties.DeliveryMode = 2;
 					properties.ReplyTo = confirmationQueue;
+					properties.Persistent = true; // 👈 Mensajes persistentes
 					if (correlationId != string.Empty)
 						properties.CorrelationId = correlationId;
 
@@ -65,8 +85,8 @@ namespace AndoIt.Common.Common
 						CreateExchangeAndQueueIfPossible(exchangeName, channel, routingKey);
 
 					byte[] payload = Encoding.UTF8.GetBytes(datosPublicacion);
-					channel.BasicPublish(exchangeName, routingKey, properties, payload);
-					this.log.Debug($"channel.BasicPublish({exchangeName}, {routingKey}, {properties}, {payload})", new StackTrace());
+					channel.BasicPublish(this.ExchangeName, routingKey, properties, payload);
+					this.log.Debug($"channel.BasicPublish({this.ExchangeName}, {routingKey}, {properties}, {payload})", new StackTrace());
 				}
 			}
 		}

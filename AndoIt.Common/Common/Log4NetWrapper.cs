@@ -64,9 +64,11 @@ namespace AndoIt.Common
 			this.forbiddenWords.ForEach(x => message = message.Replace(x, FORBIDDEN_WORD_CHARACTERS));
 			return message;
 		}
-		public void Debug(string message, StackTrace stackTrace = null)
+		public void Debug(string message, StackTrace stackTrace = null, params object[] paramValues)
 		{
-			if (stackTrace != null) message = $"{StackTraceToString(stackTrace)}: {message}";
+            if (paramValues != null && paramValues.Length > 0)
+                message += $"{Environment.NewLine}Params: {ParamsToString(stackTrace.GetFrame(0).GetMethod(), paramValues)}";
+            if (stackTrace != null) message = $"{StackTraceToString(stackTrace)}: {message}";
 			this.wrappedLog.Debug(message);
 		}
 		private string StackTraceToString(StackTrace stackTrace)

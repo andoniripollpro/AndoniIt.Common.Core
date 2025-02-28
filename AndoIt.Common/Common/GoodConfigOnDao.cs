@@ -155,7 +155,7 @@ namespace AndoIt.Common
 					throw;
 			}
 			this.log.Debug($"connectionString: {connectionString}", new StackTrace());
-			this.log.Debug($"Esta es la configuración leída de la BD: {Environment.NewLine}{configurationInJson}", new StackTrace());
+			this.log.InfoSafe($"Esta es la configuración leída de la BD: {Environment.NewLine}{configurationInJson}", new StackTrace());
 		}
 	}
 }

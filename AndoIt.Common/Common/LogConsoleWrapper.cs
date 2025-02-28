@@ -3,6 +3,7 @@ using AndoIt.Common.Interface;
 using Newtonsoft.Json;
 using System;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace AndoIt.Common
 {
@@ -50,12 +51,32 @@ namespace AndoIt.Common
 		{
 			return string.Empty;
 		}
-		public void Debug(string message, StackTrace stackTrace = null)
+		public void Debug(string message, StackTrace stackTrace = null, params object[] paramValues)
 		{
-			if (this.logLevel <= LogLevel.Debug)
+            if (stackTrace != null) message = $"{stackTrace.ToStringClassMethod()}: {message}";
+            if (paramValues != null && paramValues.Length > 0)
+                message += $"{Environment.NewLine}Params: {ParamsToString(stackTrace.GetFrame(0).GetMethod(), paramValues)}";
+            if (this.logLevel <= LogLevel.Debug)
 				Console.WriteLine($"Debug: {stackTrace.ToStringClassMethod()}: {message}");
 		}
-		public void Dispose()
+
+        private string ParamsToString(MethodBase method, params object[] values)
+        {
+            ParameterInfo[] parms = method.GetParameters();
+            object[] namevalues = new object[2 * parms.Length];
+
+            string msg = "(";
+            for (int i = 0, j = 0; i < parms.Length; i++, j += 2)
+            {
+                msg += "{" + j + "}={" + (j + 1) + "}, ";
+                namevalues[j] = parms[i].Name;
+                if (i < values.Length) namevalues[j + 1] = values[i];
+            }
+            msg += ")";
+            return string.Format(msg, namevalues);
+        }
+
+        public void Dispose()
 		{
 		}
         public void InfoObject(object objectToTrace)

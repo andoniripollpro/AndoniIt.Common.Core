@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
@@ -49,7 +50,7 @@ namespace AndoIt.Common.Common
 			{				
 				Uri uri = new Uri(this.amqpUrlListen);
 				this.connectionFactory.Uri = uri;
-				string queue = HttpUtility.ParseQueryString(uri.Query).Get("queue");
+				string queueName = HttpUtility.ParseQueryString(uri.Query).Get("queue");
 
 				this.connection = this.connectionFactory.CreateConnection();
 				this.connection.ConnectionShutdown += (obj, msg) => ConnectionShutdown(obj, msg);
@@ -59,18 +60,24 @@ namespace AndoIt.Common.Common
 				this.channel = this.connection.CreateModel();
 				this.channel.ModelShutdown += (obj, msg) => ModelShutdown(obj, msg);
 
-				this.channel.QueueDeclare(queue: queue,
-						 durable: true,
-						 exclusive: false,
-						 autoDelete: false,
-						 arguments: null);
+                //Crea Exchanges, Queues y Links se es necesario
+                if (!this.connectionFactory.Uri.ToString().Contains("autoCreation=false"))
+				{
+                    this.log.Info($"Llama a CreateExchangeQueueAndLinkIfPossible", new StackTrace());
+                    Dictionary<string, object> queueArguments = new Dictionary<string, object>();
+                    if (HttpUtility.ParseQueryString(uri.Query).Get("quorum") == "true")
+                        queueArguments.Add("x-queue-type", "quorum");
 
+                    var rabbitMqCreator = new RabbitMQCreator(this.log);
+					rabbitMqCreator.CreateExchangeQueueAndLinkIfPossible(queueName, channel, queueArguments: queueArguments);
+				}
+				
 				var consumer = new EventingBasicConsumer(this.channel);
 				consumer.Received += (model, ea) => { ConsumeMessage(ea); };
 				consumer.ConsumerCancelled += (obj, msg) => { ConsumerCancelled(obj, msg); };
 				consumer.Shutdown += (obj, msg) => { ConsumerShutdown(obj, msg); };
 				consumer.Unregistered += (obj, msg) => { ConsumerUnregistered(obj, msg); };				
-				this.channel.BasicConsume(queue: queue,
+				this.channel.BasicConsume(queue: queueName,
 										autoAck: false,
 										consumer: consumer);
 			}
