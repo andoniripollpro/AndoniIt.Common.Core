@@ -8,21 +8,22 @@ using System.Web;
 
 namespace AndoIt.Common.Common
 {
-	/// <summary>
-	/// Creará el exchange definidos así:
-	/// autoCreation=true o nada
+    /// <summary>
+    /// Creará el exchange definidos así:
+    /// autoCreation=true o nada
     /// Y no lo creará con los definidos así
-	/// autoCreation=false
-	/// </summary>
-	public class RabbitMQPublisher
+    /// autoCreation=false
+    /// Y lo hará quorum si el parámetro quorum es true
+    /// </summary>
+    public class RabbitMQPublisher
 	{
 		private readonly ILog log;
 		private readonly ConnectionFactory connectionFactory;
 		
 		public RabbitMQPublisher(ILog log, string amqpUrlPublish)
 		{
-			this.log.InfoSafe($"Start on amqpUrlPublish '{amqpUrlPublish}'", new StackTrace());
 			this.log = log ?? throw new ArgumentNullException("log");
+			this.log.InfoSafe($"Start on amqpUrlPublish '{amqpUrlPublish}'", new StackTrace());
 			this.connectionFactory = new ConnectionFactory();
 			this.connectionFactory.Uri = new Uri(amqpUrlPublish ?? throw new ArgumentNullException("amqpUrlPublish"));
 
