@@ -65,7 +65,7 @@ namespace AndoIt.Common.Common
 				{
                     this.log.Info($"Llama a CreateExchangeQueueAndLinkIfPossible", new StackTrace());
                     Dictionary<string, object> queueArguments = new Dictionary<string, object>();
-                    if (HttpUtility.ParseQueryString(uri.Query).Get("quorum") == "true")
+                    if (this.amqpUrlListen.Contains("quorum=true"))
                         queueArguments.Add("x-queue-type", "quorum");
 
                     var rabbitMqCreator = new RabbitMQCreator(this.log);
