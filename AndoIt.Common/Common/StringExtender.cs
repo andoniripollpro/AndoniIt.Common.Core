@@ -72,5 +72,34 @@ namespace AndoIt.Common
             return stream;
         }
 
+        public static string ConvertUnicodeToAscii(this string unicodeString)
+        {
+            if (unicodeString == null)
+            {
+                return null;
+            }
+
+            byte[] bytes = Encoding.Unicode.GetBytes(unicodeString);
+            byte[] asciiBytes = Encoding.Convert(Encoding.Unicode, Encoding.ASCII, bytes);
+            char[] asciiChars = new char[asciiBytes.Length];
+            int charCount = Encoding.ASCII.GetDecoder().GetChars(asciiBytes, 0, asciiBytes.Length, asciiChars, 0);
+            return new string(asciiChars, 0, charCount);
+        }
+
+        public static string ConvertUnicodeToUtf8WithoutBom(this string unicodeString)
+        {
+            if (unicodeString == null)
+            {
+                return null;
+            }
+
+            // Crear una instancia de UTF8Encoding sin incluir el BOM
+            Encoding utf8WithoutBom = new UTF8Encoding(false);
+
+            // Convertir la cadena Unicode a un array de bytes UTF-8
+            byte[] utf8Bytes = utf8WithoutBom.GetBytes(unicodeString);
+
+            return utf8WithoutBom.GetString(utf8Bytes);
+        }
     }
 }
