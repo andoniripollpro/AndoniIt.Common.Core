@@ -30,6 +30,17 @@ namespace AndoIt.Common
 			return localTime;
 		}
 
+        public static DateTime GetLastWriteTime(this Assembly assembly, TimeZoneInfo target = null)
+        {
+            var filePath = assembly.Location;
+            var lastWriteTimeUtc = File.GetLastWriteTimeUtc(filePath);
+
+            var tz = target ?? TimeZoneInfo.Local;
+            var localTime = TimeZoneInfo.ConvertTimeFromUtc(lastWriteTimeUtc, tz);
+
+            return localTime;
+        }
+
         public static DateTime GetBuildDate(this Assembly assembly)
         {
             const int PeHeaderOffset = 60;
