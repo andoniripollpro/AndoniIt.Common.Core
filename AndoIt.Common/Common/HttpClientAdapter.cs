@@ -273,19 +273,22 @@ namespace AndoIt.Common
             }
         }
 
-        private void FromFileToStream(string completeFileAddress, Stream rs)
+        private async Task FromFileToStream(string completeFileAddress, Stream rs)
         {
-            FileStream fileStream = new FileStream(completeFileAddress, FileMode.Open, FileAccess.Read);
-            byte[] buffer = new byte[4096];
-            int bytesRead = 0;
-            while ((bytesRead = fileStream.Read(buffer, 0, buffer.Length)) != 0)
+            using (FileStream fileStream = new FileStream(completeFileAddress, FileMode.Open, FileAccess.Read))
             {
-                rs.Write(buffer, 0, bytesRead);
+                byte[] buffer = new byte[4096];
+                int bytesRead = 0;
+                // Usamos ReadAsync y WriteAsync para no bloquear el hilo
+                while ((bytesRead = await fileStream.ReadAsync(buffer, 0, buffer.Length)) != 0)
+                {
+                    await rs.WriteAsync(buffer, 0, bytesRead);
+                }
+                fileStream.Close();
             }
-            fileStream.Close();
             rs.Close();
         }
-
+        
         public async Task<HttpResponseMessage> StandardGet(string url, NetworkCredential credentials = null)
         {
             this.LogListener?.Message($"Antes del Standard GET {url}. Credentials: {credentials?.UserName}. Headers: {this.AuthenticationHeaderValue?.ToString()}. ");
